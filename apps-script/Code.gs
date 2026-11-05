@@ -13,6 +13,10 @@ const H_ITEMS = ['id', 'categoria', 'num', 'codigo', 'falla', 'estado', 'ubicaci
 const H_REPORTES = ['rid', 'fecha', 'categoria', 'itemId', 'itemCodigo', 'tipo', 'comentario', 'usuario', 'nombre', 'casa', 'telefono',
   'lat', 'lon', 'foto', 'estado', 'fechaEstado', 'por', 'notas', 'cuadrilla', 'apoyos', 'historial'];
 const H_BITACORA = ['fecha', 'usuario', 'nombre', 'accion', 'detalle'];
+const H_LUGARES = ['id', 'clase', 'nombre', 'giro', 'estado', 'dueno', 'lat', 'lon', 'foto', 'actualizado', 'por', 'data'];
+const H_PEDIDOS = ['pid', 'fecha', 'lugarId', 'lugarNombre', 'cliente', 'nombre', 'casa', 'telefono', 'items', 'total', 'entrega', 'nota',
+  'estado', 'fechaEstado', 'dlat', 'dlon', 'historial'];
+const ESTADOS_PED = ['recibido', 'preparando', 'camino', 'entregado', 'cancelado'];
 const CATEGORIAS = ['luminarias', 'drenaje', 'baches', 'fugas', 'apagones', 'basura', 'poda'];
 const INVENTARIO = ['luminarias', 'drenaje'];
 const ROLES = ['vecino', 'operador', 'comite'];
@@ -43,6 +47,8 @@ const hUsuarios_ = () => hoja_('Usuarios', H_USUARIOS);
 const hItems_ = () => hoja_('Inventario', H_ITEMS);
 const hReportes_ = () => hoja_('Reportes', H_REPORTES);
 const hBitacora_ = () => hoja_('Bitácora', H_BITACORA);
+const hLugares_ = () => hoja_('Lugares', H_LUGARES);
+const hPedidos_ = () => hoja_('Pedidos', H_PEDIDOS);
 
 function filas_(sh, headers) {
   const n = sh.getLastRow() - 1; if (n <= 0) return [];
@@ -153,8 +159,36 @@ function datos_(u) {
     }
     out.push(o);
   });
-  return { items: items, reportes: out };
+  const lugares = filas_(hLugares_(), H_LUGARES).map(lugarDe_)
+    .filter(l => l.estado === 'aprobado' || u.rol === 'comite' || normUsuario_(l.dueno) === normUsuario_(u.usuario))
+    .map(l => { l.mio = normUsuario_(l.dueno) === normUsuario_(u.usuario); if (u.rol !== 'comite' && !l.mio) delete l.dueno; return l; });
+  const mios = {}; lugares.forEach(l => { if (l.mio) mios[l.id] = 1; });
+  const hace60 = Date.now() - 60 * 864e5;
+  const pedidos = filas_(hPedidos_(), H_PEDIDOS).map(pedidoDe_).filter(p => {
+    const soyCliente = normUsuario_(p.cliente) === normUsuario_(u.usuario), soyNegocio = !!mios[p.lugarId];
+    if (!(soyCliente || soyNegocio)) return false;
+    const abierto = ['recibido', 'preparando', 'camino'].indexOf(p.estado) >= 0;
+    return abierto || new Date(p.fecha).getTime() > hace60;
+  }).map(p => { p.soyCliente = normUsuario_(p.cliente) === normUsuario_(u.usuario); p.soyNegocio = !!mios[p.lugarId]; delete p._row; return p; });
+  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos };
 }
+function lugarDe_(r) {
+  let d = {}; try { d = JSON.parse(r.data || '{}'); } catch (e) { }
+  return Object.assign(d, { id: String(r.id), clase: r.clase, nombre: String(r.nombre), giro: String(r.giro || ''), estado: r.estado || 'aprobado', dueno: String(r.dueno || ''),
+    lat: Number(r.lat), lon: Number(r.lon), foto: String(r.foto || ''), actualizado: String(r.actualizado || ''), _row: r._row });
+}
+function pedidoDe_(r) {
+  let items = [], hist = []; try { items = JSON.parse(r.items || '[]'); } catch (e) { } try { hist = JSON.parse(r.historial || '[]'); } catch (e) { }
+  const iso = v => v instanceof Date ? v.toISOString() : String(v || '');
+  return { pid: String(r.pid), fecha: iso(r.fecha), lugarId: String(r.lugarId), lugarNombre: String(r.lugarNombre), cliente: String(r.cliente), nombre: String(r.nombre),
+    casa: String(r.casa), telefono: String(r.telefono || ''), items: items, total: Number(r.total) || 0, entrega: String(r.entrega), nota: String(r.nota || ''),
+    estado: String(r.estado), fechaEstado: iso(r.fechaEstado), dlat: r.dlat === '' ? null : Number(r.dlat), dlon: r.dlon === '' ? null : Number(r.dlon), historial: hist, _row: r._row };
+}
+const enZona_ = (lat, lon) => lat > 16.9 && lat < 17.2 && lon > -96.9 && lon < -96.5;
+function limpiarMenu_(m) {
+  return (Array.isArray(m) ? m : []).slice(0, 80).map(x => ({ n: limpiarTxt_(x && x.n, 60), p: Math.max(0, Math.min(99999, Number(x && x.p) || 0)), d: limpiarTxt_(x && x.d, 120) })).filter(x => x.n);
+}
+function limpiarTxt_(s, n) { return limpiar_(s, n); }
 
 // ---------------- Entrada ----------------
 function doGet() { return json_({ ok: true, app: 'Trinidad de las Huertas', v: 1 }); }
@@ -270,6 +304,132 @@ function atender_(req) {
     sh.getRange(r._row, H_REPORTES.indexOf('estado') + 1, 1, 3).setValues([['descartado', ahora_(), u.usuario]]);
     sh.getRange(r._row, H_REPORTES.indexOf('historial') + 1).setValue(JSON.stringify(r.historial.slice(-60)));
     bitacora_(u, 'Canceló su reporte', r.rid);
+    return { ok: true };
+  }
+
+  // ---- Negocios y lugares ----
+  if (a === 'lugarGuardar') {
+    const d = req.data || {}; const clase = req.clase === 'clave' ? 'clave' : 'negocio';
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hLugares_(); const filas = filas_(sh, H_LUGARES).map(lugarDe_);
+      const prev = req.id ? filas.find(x => x.id === String(req.id)) : null;
+      if (req.id && !prev) return { ok: false, error: 'no_existe' };
+      const dueno = prev ? prev.dueno : u.usuario;
+      const esDueno = normUsuario_(dueno) === normUsuario_(u.usuario);
+      if ((prev ? prev.clase : clase) === 'clave' && !comite) return { ok: false, error: 'permiso' };
+      if (prev && !esDueno && !comite) return { ok: false, error: 'permiso' };
+      if (!prev && filas.filter(x => normUsuario_(x.dueno) === normUsuario_(u.usuario)).length >= 10 && !comite) return { ok: false, error: 'demasiados' };
+      const base = prev ? Object.assign({}, prev) : {};
+      delete base._row; delete base.mio;
+      const next = Object.assign(base, {
+        nombre: limpiar_(d.nombre !== undefined ? d.nombre : base.nombre, 80), giro: limpiar_(d.giro !== undefined ? d.giro : base.giro, 30),
+        descripcion: limpiar_(d.descripcion !== undefined ? d.descripcion : base.descripcion, 600), horario: limpiar_(d.horario !== undefined ? d.horario : base.horario, 120),
+        telefono: limpiar_(d.telefono !== undefined ? d.telefono : base.telefono, 20), whatsapp: limpiar_(d.whatsapp !== undefined ? d.whatsapp : base.whatsapp, 20),
+        direccion: limpiar_(d.direccion !== undefined ? d.direccion : base.direccion, 160), domicilio: d.domicilio !== undefined ? !!d.domicilio : !!base.domicilio,
+        maps: limpiar_(d.maps !== undefined ? d.maps : base.maps, 300)
+      });
+      if (d.menu !== undefined) next.menu = limpiarMenu_(d.menu);
+      if (d.lat !== undefined) { next.lat = Number(d.lat); next.lon = Number(d.lon); }
+      if (!next.nombre || next.nombre.length < 2) return { ok: false, error: 'faltan_datos' };
+      if (!enZona_(Number(next.lat), Number(next.lon))) return { ok: false, error: 'ubicacion' };
+      const id = prev ? prev.id : nuevoId_(clase === 'clave' ? 'k' : 'n');
+      const estado = prev ? prev.estado : (clase === 'clave' || comite ? 'aprobado' : 'pendiente');
+      const row = { id: id, clase: prev ? prev.clase : clase, nombre: next.nombre, giro: next.giro, estado: estado, dueno: dueno, lat: Number(next.lat), lon: Number(next.lon),
+        foto: next.foto || '', actualizado: ahora_(), por: u.usuario, data: JSON.stringify(next).slice(0, 45000) };
+      escribirFila_(sh, H_LUGARES, prev ? prev._row : null, row);
+      bitacora_(u, (prev ? 'Editó ' : 'Registró ') + (row.clase === 'clave' ? 'lugar clave' : 'negocio'), `${row.nombre}${!prev && estado === 'pendiente' ? ' · por aprobar' : ''}`);
+      return { ok: true, lugar: Object.assign(next, { id: id, clase: row.clase, estado: estado, dueno: dueno, mio: normUsuario_(dueno) === normUsuario_(u.usuario), actualizado: row.actualizado }) };
+    } finally { lock.releaseLock(); }
+  }
+  if (a === 'lugarFoto') {
+    const sh = hLugares_(); const l = filas_(sh, H_LUGARES).map(lugarDe_).find(x => x.id === String(req.id));
+    if (!l) return { ok: false, error: 'no_existe' };
+    if (!comite && normUsuario_(l.dueno) !== normUsuario_(u.usuario)) return { ok: false, error: 'permiso' };
+    const foto = guardarFoto_(req.data, 'lugar_' + l.id + '_' + Date.now());
+    const campo = req.campo === 'menuFoto' ? 'menuFoto' : 'foto';
+    const d = Object.assign({}, l); delete d._row; d[campo] = foto;
+    if (campo === 'foto') sh.getRange(l._row, H_LUGARES.indexOf('foto') + 1).setValue(foto);
+    sh.getRange(l._row, H_LUGARES.indexOf('data') + 1).setValue(JSON.stringify(d).slice(0, 45000));
+    bitacora_(u, campo === 'foto' ? 'Foto de lugar' : 'Foto de menú', l.nombre);
+    return { ok: true, foto: foto, campo: campo };
+  }
+  if (a === 'lugarEstado') {
+    if (!comite) return { ok: false, error: 'permiso' };
+    const est = String(req.estado); if (['aprobado', 'pendiente', 'rechazado'].indexOf(est) < 0) return { ok: false, error: 'estado' };
+    const sh = hLugares_(); const l = filas_(sh, H_LUGARES).map(lugarDe_).find(x => x.id === String(req.id));
+    if (!l) return { ok: false, error: 'no_existe' };
+    sh.getRange(l._row, H_LUGARES.indexOf('estado') + 1).setValue(est);
+    bitacora_(u, est === 'aprobado' ? 'Aprobó negocio' : est === 'rechazado' ? 'Rechazó negocio' : 'Regresó negocio a revisión', l.nombre);
+    return { ok: true };
+  }
+  if (a === 'lugarBorrar') {
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hLugares_(); const l = filas_(sh, H_LUGARES).map(lugarDe_).find(x => x.id === String(req.id));
+      if (!l) return { ok: false, error: 'no_existe' };
+      if (!comite && normUsuario_(l.dueno) !== normUsuario_(u.usuario)) return { ok: false, error: 'permiso' };
+      sh.deleteRow(l._row);
+      bitacora_(u, 'Eliminó ' + (l.clase === 'clave' ? 'lugar clave' : 'negocio'), l.nombre);
+      return { ok: true };
+    } finally { lock.releaseLock(); }
+  }
+
+  // ---- Pedidos ----
+  if (a === 'pedidoCrear') {
+    const l = filas_(hLugares_(), H_LUGARES).map(lugarDe_).find(x => x.id === String(req.lugarId));
+    if (!l || l.clase !== 'negocio' || l.estado !== 'aprobado') return { ok: false, error: 'no_existe' };
+    const menu = limpiarMenu_(l.menu); const precio = {}; menu.forEach(m => precio[m.n] = m.p);
+    const items = (Array.isArray(req.items) ? req.items : []).slice(0, 60).map(x => {
+      const n = limpiar_(x && x.n, 80), q = Math.max(1, Math.min(99, Math.round(Number(x && x.q) || 1)));
+      return { n: n, q: q, p: precio[n] !== undefined ? precio[n] : 0 };
+    }).filter(x => x.n);
+    const nota = limpiar_(req.nota, 500);
+    if (!items.length && !nota) return { ok: false, error: 'faltan_datos' };
+    const total = items.reduce((s, x) => s + x.p * x.q, 0);
+    const entrega = req.entrega === 'domicilio' && l.domicilio ? 'domicilio' : 'recoger';
+    const dl = Number(req.dlat), dn = Number(req.dlon); const conDest = entrega === 'domicilio' && enZona_(dl, dn);
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hPedidos_();
+      const hoy = filas_(sh, H_PEDIDOS).filter(p => normUsuario_(p.cliente) === normUsuario_(u.usuario) && new Date(p.fecha).getTime() > Date.now() - 864e5).length;
+      if (hoy >= 30) return { ok: false, error: 'demasiados' };
+      const pid = nuevoId_('o');
+      const p = { pid: pid, fecha: ahora_(), lugarId: l.id, lugarNombre: l.nombre, cliente: u.usuario, nombre: u.nombre, casa: `${u.calle} ${u.casa}`, telefono: u.telefono,
+        items: JSON.stringify(items), total: total, entrega: entrega, nota: nota, estado: 'recibido', fechaEstado: ahora_(), dlat: conDest ? dl : '', dlon: conDest ? dn : '',
+        historial: JSON.stringify([{ f: ahora_(), t: 'Pedido enviado', u: u.nombre }]) };
+      escribirFila_(sh, H_PEDIDOS, null, p);
+      bitacora_(u, 'Hizo un pedido', `${l.nombre} · ${pid}`);
+      return { ok: true, pid: pid, total: total, items: items, entrega: entrega };
+    } finally { lock.releaseLock(); }
+  }
+  if (a === 'pedidoEstado' || a === 'pedidoUbicacion' || a === 'pedidoSeguir') {
+    const sh = hPedidos_(); const p = filas_(sh, H_PEDIDOS).map(pedidoDe_).find(x => x.pid === String(req.pid));
+    if (!p) return { ok: false, error: 'no_existe' };
+    const l = filas_(hLugares_(), H_LUGARES).map(lugarDe_).find(x => x.id === p.lugarId);
+    const soyNegocio = !!l && normUsuario_(l.dueno) === normUsuario_(u.usuario);
+    const soyCliente = normUsuario_(p.cliente) === normUsuario_(u.usuario);
+    if (!soyNegocio && !soyCliente) return { ok: false, error: 'permiso' };
+    const cache = CacheService.getScriptCache();
+    if (a === 'pedidoSeguir') {
+      let loc = null; try { loc = JSON.parse(cache.get('loc_' + p.pid) || 'null'); } catch (e) { }
+      return { ok: true, estado: p.estado, fechaEstado: p.fechaEstado, loc: p.estado === 'camino' ? loc : null };
+    }
+    if (a === 'pedidoUbicacion') {
+      if (!soyNegocio) return { ok: false, error: 'permiso' };
+      if (p.estado !== 'camino') return { ok: false, error: 'estado' };
+      const lat = Number(req.lat), lon = Number(req.lon); if (!enZona_(lat, lon)) return { ok: false, error: 'ubicacion' };
+      cache.put('loc_' + p.pid, JSON.stringify({ lat: lat, lon: lon, acc: Math.min(5000, Number(req.acc) || 30), f: ahora_() }), 21600);
+      return { ok: true };
+    }
+    const est = String(req.estado); if (ESTADOS_PED.indexOf(est) < 0) return { ok: false, error: 'estado' };
+    if (!soyNegocio && !(soyCliente && est === 'cancelado' && p.estado === 'recibido')) return { ok: false, error: 'permiso' };
+    const txt = { recibido: 'Recibido', preparando: 'Preparando', camino: 'En camino', entregado: 'Entregado', cancelado: 'Cancelado' }[est];
+    p.historial.push({ f: ahora_(), t: txt, u: u.nombre });
+    sh.getRange(p._row, H_PEDIDOS.indexOf('estado') + 1, 1, 2).setValues([[est, ahora_()]]);
+    sh.getRange(p._row, H_PEDIDOS.indexOf('historial') + 1).setValue(JSON.stringify(p.historial.slice(-30)));
+    if (est === 'entregado' || est === 'cancelado') cache.remove('loc_' + p.pid);
+    bitacora_(u, 'Pedido: ' + txt.toLowerCase(), `${p.lugarNombre} · ${p.pid}`);
     return { ok: true };
   }
 
@@ -442,7 +602,7 @@ function atender_(req) {
 
 /** Ejecutar una vez desde el editor: crea la hoja, las pestañas y la carpeta de fotos. */
 function instalar() {
-  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); carpetaFotos_(); secreto_();
+  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); hLugares_(); hPedidos_(); carpetaFotos_(); secreto_();
   if (!PROPS.getProperty('CLAVE')) PROPS.setProperty('CLAVE', 'CAMBIAR-ESTA-CLAVE');
   Logger.log('Hoja: ' + ss_().getUrl());
 }

@@ -100,6 +100,49 @@ body{touch-action:auto}
 .pwrow{position:relative}
 .pwrow button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--accent);font:600 12.5px var(--body);cursor:pointer;padding:6px}
 .loading{display:grid;place-items:center;height:100%;color:var(--muted);font:600 14px var(--body)}
+/* Negocios y lugares */
+.vin{cursor:pointer}
+.vin rect.bg{fill:var(--panel);stroke:var(--accent);stroke-width:1.5}
+.vin circle.ib{fill:var(--accent)}
+.vin text{font:700 11px var(--display);fill:var(--accent);dominant-baseline:central;pointer-events:none}
+.vin .ico{stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.vin path.tip{fill:var(--accent)}
+.vin.sel rect.bg{stroke-width:3}
+.pin.pend circle.dot{stroke-dasharray:4 3;stroke:var(--muted);stroke-width:2.5}
+.trk .halo{fill:#2f6fd6;opacity:.25}
+.trk .dot{fill:#2f6fd6;stroke:#fff;stroke-width:3}
+.trk .ico{stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.dest circle{fill:var(--done);stroke:#fff;stroke-width:2.5}
+.dest .ico{stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:no-preference){.trk .halo{animation:halo 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}}
+.livebar{display:flex;align-items:center;gap:10px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:#2f6fd6;color:#fff;font:600 13.5px var(--body);z-index:6;flex:none}
+.livebar .msg{flex:1;min-width:0;line-height:1.3}
+.livebar button{border:1px solid rgba(255,255,255,.7);background:transparent;color:#fff;border-radius:999px;padding:6px 12px;font:700 13px var(--body);cursor:pointer;flex:none}
+.livebar i{width:9px;height:9px;border-radius:50%;background:#fff;flex:none}
+@media (prefers-reduced-motion:no-preference){.livebar i{animation:blink 1.2s ease-in-out infinite}@keyframes blink{50%{opacity:.25}}}
+.biz-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.biz-actions .btn{justify-content:center;padding:11px 8px}
+.biz-actions .wide{grid-column:1/-1}
+.btn.wa{background:#1f8f4e;border-color:#1f8f4e;color:#fff}
+.menu{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;padding:2px 12px;margin:0 0 14px;background:var(--bg)}
+.menu .mi{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.menu .mi:last-child{border-bottom:0}
+.menu .mi .b{flex:1;min-width:0}
+.menu .mi .n{font:700 14.5px var(--display)}
+.menu .mi .d{font-size:12.5px;color:var(--muted)}
+.menu .mi .p{font:800 14px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:800 17px var(--display);cursor:pointer;padding:0;line-height:1}
+.qty b{min-width:18px;text-align:center;font:800 15px var(--display);font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;font:800 17px var(--display);padding:4px 2px}
+.medit{display:grid;gap:8px}
+.medit .mr{display:grid;grid-template-columns:1fr 84px 36px;gap:6px;align-items:start}
+.medit .mr textarea{grid-column:1/3;min-height:38px;font-size:14px;padding:8px}
+.medit .mr input{padding:9px}
+.medit .mr .x2{border:1px solid var(--line);background:var(--bg);color:var(--rep);border-radius:10px;height:42px;cursor:pointer;font-size:18px}
+.radio{display:grid;gap:6px}
+.radio label{display:flex;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font:600 14.5px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.radio input{width:20px;height:20px;margin:0;accent-color:var(--accent);flex:none}
 </style>
 </head>
 <body>
@@ -148,6 +191,7 @@ body{touch-action:auto}
     <div class="chips"><button class="iconbtn" id="btnList" type="button" aria-label="Lista" title="Lista" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button><button class="avatar" id="btnMe2" type="button" aria-label="Mi cuenta">·</button></div>
   </header>
   <nav class="cats" id="cats" aria-label="Secciones"></nav>
+  <div class="livebar" id="liveBar" hidden><i></i><span class="msg" id="liveMsg"></span><button type="button" id="liveStop">Detener</button></div>
 
   <div class="view" id="home"><div class="loading">Cargando…</div></div>
 
@@ -195,6 +239,25 @@ const ICON = {
   basura:'<path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/>',
   poda:'<path d="M12 21v-6.5"/><path d="M7.5 14.5h9a3.5 3.5 0 0 0 .6-6.95A5.2 5.2 0 0 0 7 7.6a3.5 3.5 0 0 0 .5 6.9z"/><path d="M12 17.5l-3-2.5M12 16.5l3-2.2"/>'
 };
+Object.assign(ICON,{
+  lugares:'<path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><path d="M12 5.8l1.1 2.3 2.5.3-1.9 1.7.5 2.5L12 11.4l-2.2 1.2.5-2.5-1.9-1.7 2.5-.3z"/>',
+  cancha:'<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M12 6v12"/><circle cx="12" cy="12" r="2.6"/>',
+  templo:'<path d="M12 2.5v4M10 4.5h4"/><path d="M5 21V11.5l7-4.5 7 4.5V21"/><path d="M10 21v-5h4v5"/>',
+  glorieta:'<circle cx="12" cy="12" r="3.6"/><path d="M12 2.5v5.9M12 15.6v5.9M2.5 12h5.9M15.6 12h5.9"/>',
+  escuela:'<path d="M2 9.5 12 4.5l10 5-10 5z"/><path d="M6 11.5v4.8c3.3 2.2 8.7 2.2 12 0v-4.8"/>',
+  acceso:'<path d="M3 21h18M5 21V9h3v12M16 21V9h3v12M8 11.5h8"/>',
+  estrella:'<path d="M12 3.2l2.6 5.5 6 .7-4.5 4.1 1.2 6L12 16.6l-5.3 2.9 1.2-6-4.5-4.1 6-.7z"/>',
+  comida:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21v-7c-2 0-3-1.5-3-5.5S15.5 3 17 3z"/>',
+  cafe:'<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10.5h1.2a2.4 2.4 0 0 1 0 4.8H17M8 3.5v3M12 3.5v3"/>',
+  tienda:'<path d="M3.5 9 5 4h14l1.5 5"/><path d="M3.5 9h17v1.5a2.8 2.8 0 0 1-5.6 0 2.9 2.9 0 0 1-5.8 0 2.8 2.8 0 0 1-5.6 0z"/><path d="M5 13.5V21h14v-7.5M10 21v-4.5h4V21"/>',
+  pan:'<path d="M4 14.5C4 9.5 7.6 6 12 6s8 3.5 8 8.5V18H4z"/><path d="M9 9.5v3M12 8.5v4M15 9.5v3"/>',
+  salud:'<path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/>',
+  belleza:'<circle cx="6.5" cy="17.5" r="3"/><circle cx="17.5" cy="17.5" r="3"/><path d="M8.5 15.3 18 4M15.5 15.3 6 4"/>',
+  servicios:'<path d="M14.5 6.5a4 4 0 0 0-5.3 5.3L3 18l3 3 6.2-6.2a4 4 0 0 0 5.3-5.3l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  casa:'<path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-5h4v5"/>',
+  moto:'<circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/><path d="M6 16h5l3-6h3l1 6M14 10l-2-3H9"/>',
+  pedido:'<path d="M5 7h14l-1.2 12.5a2 2 0 0 1-2 1.5H8.2a2 2 0 0 1-2-1.5z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/>'
+});
 const svgI = (k,attrs='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${ICON[k]||""}</svg>`;
 const CATS = {
   luminarias:{n:"Luminarias", s:"luminaria", item:"poste", Item:"Poste", inv:true, col:"#c8902a", desc:"Postes del alumbrado público",
@@ -218,6 +281,12 @@ const CATS = {
 const ORDER = ["luminarias","drenaje","baches","fugas","apagones","basura","poda"];
 const EST = {nuevo:["Nuevo","var(--rep)"], proceso:["En atención","var(--gold)"], atendido:["Atendido","var(--done)"], descartado:["Descartado","var(--muted)"]};
 const ROLTXT = {vecino:"Vecino", operador:"Operador de mantenimiento", comite:"Comité"};
+const CLAVE_T = {cancha:["Cancha","cancha"], templo:["Capilla o templo","templo"], glorieta:["Glorieta","glorieta"], parque:["Parque o jardín","poda"], escuela:["Escuela","escuela"], acceso:["Entrada o caseta","acceso"], otro:["Otro lugar","estrella"]};
+const GIROS = {comida:["Comida","comida"], cafe:["Cafetería","cafe"], pan:["Panadería y postres","pan"], tienda:["Tienda o abarrotes","tienda"], salud:["Salud y farmacia","salud"], belleza:["Estética y belleza","belleza"], servicios:["Servicios y oficios","servicios"], otro:["Otro negocio","estrella"]};
+// Lugares clave sugeridos; las coordenadas son aproximadas (OpenStreetMap) y el comité las confirma.
+const SUGERIDOS = [["Cancha de fútbol","cancha",17.05399,-96.715902],["Capilla de Nuestra Señora de Guadalupe","templo"],["Glorieta de Chedraui","glorieta",17.052696,-96.716127]];
+const PEST = {recibido:["Recibido","var(--rep)"], preparando:["Preparando","var(--gold)"], camino:["En camino","#2f6fd6"], entregado:["Entregado","var(--done)"], cancelado:["Cancelado","var(--muted)"]};
+const BIZ_COL = "#0f766e";
 const ERR = {credenciales:"Usuario o contraseña incorrectos.", usuario_existe:"Ese usuario ya existe. Elige otro.", usuario_invalido:"El usuario debe tener de 3 a 30 letras o números, sin espacios ni acentos (puedes usar punto o guion).",
   pw_corta:"La contraseña debe tener al menos 6 caracteres.", faltan_datos:"Completa tu nombre, calle y número de casa.", bloqueado:"Tu cuenta está bloqueada. Habla con el comité.",
   bloqueo_temporal:"Demasiados intentos. Espera 15 minutos.", red:"Sin conexión con la hoja de datos. Revisa tu internet.", permiso:"No tienes permiso para hacer esto.", clave:"Clave incorrecta.",
@@ -237,19 +306,21 @@ const histPush = (p,t)=>[...(Array.isArray(p.historial)?p.historial:[]),{f:nowIS
 const fotoURL = id => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`;
 const dist = (a,b)=>{ const [x1,y1]=llToW(a.lat,a.lon),[x2,y2]=llToW(b.lat,b.lon); return Math.hypot(x1-x2,y1-y2); };
 const store = { get(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } }, set(k,v){ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v)); }catch(e){} } };
-function parseLL(str){
+function parseLL(str,tol){ tol=tol||400;
   const t=String(str||"").replace(/%2C/gi,",");
   const m = t.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || t.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/i) || t.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
   if(!m) return null; const lat=+m[1], lon=+m[2];
   if(!(lat>16.9&&lat<17.2&&lon>-96.9&&lon<-96.5)) return {far:true};
-  const [x,y]=llToW(lat,lon); if(x<B[0]-400||x>B[2]+400||y<B[1]-400||y>B[3]+400) return {far:true};
+  const [x,y]=llToW(lat,lon); if(x<B[0]-tol||x>B[2]+tol||y<B[1]-tol||y>B[3]+tol) return {far:true};
   return {lat,lon};
 }
 
 // ---------- Estado ----------
 const S = { token:"", user:null };
 { const ss=store.get("sesionTH"); if(ss&&ss.token){ S.token=ss.token; S.user=ss.user; } }
-let items=[], reps=[], loaded=false;
+let items=[], reps=[], lugares=[], pedidos=[], loaded=false;
+let track=null;   // cliente siguiendo un pedido: {pid, loc, timer}
+let share=null;   // negocio compartiendo ubicación: {pid, watch, last}
 let cat="";                  // "" inicio · "todo" mapa general · clave de sección
 let selected=null;           // "i:id" o "r:rid"
 let view={s:1,tx:0,ty:0};
@@ -271,7 +342,7 @@ async function api(action, body={}){
 }
 async function guard(fn,okMsg){ try{ const r=await fn(); if(okMsg) toast(okMsg); return r||true; }catch(e){ toast(errTxt(e)); return false; } }
 function setSession(token,user){ S.token=token; S.user=user; store.set("sesionTH",token?{token,user}:null); }
-function logout(msg){ setSession("",null); items=[]; reps=[]; loaded=false; closeSheet(); $("app").hidden=true; showAuth(); if(msg) authMsg(msg); }
+function logout(msg){ stopShare(); stopTrack(); setSession("",null); items=[]; reps=[]; lugares=[]; pedidos=[]; loaded=false; closeSheet(); $("app").hidden=true; showAuth(); if(msg) authMsg(msg); }
 
 // ---------- Item (inventario) ----------
 const codigo = p=>String(p.codigo||p.poste||"").trim()||"S/N";
@@ -302,8 +373,9 @@ for(const w of WAYS){ const main=w.n.startsWith("Av."), pr=w.n.startsWith("Priv"
 $("calles").innerHTML=[...new Set(WAYS.map(w=>w.n).filter(n=>n!=="Privada"))].sort().map(n=>`<option value="${esc(n)}">`).join("");
 const B=(()=>{let a=[1e9,1e9,-1e9,-1e9];WAYS.forEach(w=>w.pts.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)]}));return a;})();
 function fit(){ const r=svg.getBoundingClientRect(); if(!r.width) return; const pad=28;
-  const s=Math.min((r.width-pad*2)/(B[2]-B[0]),(r.height-pad*2-60)/(B[3]-B[1]));
-  view={s,tx:r.width/2-(B[0]+B[2])/2*s,ty:(r.height-50)/2-(B[1]+B[3])/2*s}; draw(); }
+  const b=[...B]; if(cat==="lugares"||cat==="todo") lugares.filter(l=>l.clase==="clave"||cat==="lugares").forEach(l=>{ const [x,y]=llToW(l.lat,l.lon); if(x>B[0]-1500&&x<B[2]+1500&&y>B[1]-1500&&y<B[3]+1500){ b[0]=Math.min(b[0],x-60); b[1]=Math.min(b[1],y-30); b[2]=Math.max(b[2],x+60); b[3]=Math.max(b[3],y+30); } });
+  const s=Math.min((r.width-pad*2)/(b[2]-b[0]),(r.height-pad*2-60)/(b[3]-b[1]));
+  view={s,tx:r.width/2-(b[0]+b[2])/2*s,ty:(r.height-50)/2-(b[1]+b[3])/2*s}; draw(); }
 const toS=(x,y)=>[x*view.s+view.tx,y*view.s+view.ty];
 const fromS=(sx,sy)=>[(sx-view.tx)/view.s,(sy-view.ty)/view.s];
 function center(lat,lon,minS,fy){ const r=svg.getBoundingClientRect(); const [x,y]=llToW(lat,lon); const s=Math.max(view.s,minS||3); view={s,tx:r.width/2-x*s,ty:r.height*(fy||0.3)-y*s}; draw(); }
@@ -322,6 +394,10 @@ function visiblePins(){
     reps.filter(r=>r.estado==="nuevo"&&CATS[r.categoria].inv&&!r.itemId).forEach(r=>out.push({k:"r:"+r.rid,r,icon:r.categoria,col:EST.nuevo[1],lab:`${CATS[r.categoria].n}: ${r.tipo}`}));
     return out;
   }
+  if(cat==="lugares"){
+    lugares.filter(l=>l.clase==="negocio").forEach(l=>{ const g=GIROS[l.giro]||GIROS.otro; out.push({k:"l:"+l.id,l,icon:g[1],col:l.estado==="aprobado"?BIZ_COL:"var(--muted)",pend:l.estado!=="aprobado",lab:`${l.nombre}, ${g[0]}`}); });
+    return out;
+  }
   const c=CATS[cat]; if(!c) return out; const only=!!filtro[cat];
   if(c.inv){
     catItems(cat).forEach(p=>{ if(only&&isGreen(p)&&("i:"+p.id)!==selected) return; out.push({k:"i:"+p.id,p,num:p.num??"•",col:colorOf(p),ok:p.tipo==="ok",dot:openReps(p.id).length>0,lab:`${c.Item} ${codigo(p)}, ${labelOf(p)}`}); });
@@ -336,9 +412,17 @@ function drawPins(){
   gPins.textContent="";
   if(myPos){ const [wx,wy]=llToW(myPos.lat,myPos.lon); const [x,y]=toS(wx,wy); const g=el("g",{class:"me",transform:`translate(${x},${y})`},gPins);
     el("circle",{r:Math.max(10,Math.min(120,myPos.acc*view.s)),class:"acc"},g); el("circle",{r:8,class:"dot"},g); }
+  // Viñetas de lugares clave: referencia en todos los croquis
+  const vins=lugares.filter(l=>l.clase==="clave"); vinCache=vins;
+  for(const l of vins){ const [wx,wy]=llToW(l.lat,l.lon); const [x,y]=toS(wx,wy); const t=CLAVE_T[l.giro]||CLAVE_T.otro;
+    const showTxt=view.s>0.85||("l:"+l.id)===selected||cat==="lugares"; const name=l.nombre.length>28?l.nombre.slice(0,27)+"…":l.nombre; const w=showTxt?Math.round(30+name.length*6.3):26;
+    const g=el("g",{class:"vin"+(("l:"+l.id)===selected?" sel":""),transform:`translate(${x},${y-24})`,"data-k":"l:"+l.id,tabindex:"0",role:"button","aria-label":`${l.nombre}, ${t[0]}`},gPins);
+    el("path",{d:"M-6 9 L0 22 L6 9 Z",class:"tip"},g); el("rect",{x:-13,y:-12,width:w,height:24,rx:12,class:"bg"},g); el("circle",{cx:0,cy:0,r:9.5,class:"ib"},g);
+    const ic=el("g",{class:"ico",transform:"translate(-6.2,-6.2) scale(.52)"},g); ic.innerHTML=ICON[t[1]];
+    if(showTxt){ const tx=el("text",{x:14,y:0.5},g); tx.textContent=name; } }
   pinCache=visiblePins().sort((a,b)=>(a.k===selected)-(b.k===selected));
-  for(const q of pinCache){ const o=q.p||q.r; const [wx,wy]=(q.p&&q.p._drag)||llToW(o.lat,o.lon); const [x,y]=toS(wx,wy);
-    const g=el("g",{class:"pin"+(q.k===selected?" sel":"")+(q.ok?" ok":"")+(q.faded?" faded":""),transform:`translate(${x},${y})`,"data-k":q.k,tabindex:"0",role:"button","aria-label":q.lab},gPins);
+  for(const q of pinCache){ const o=q.p||q.r||q.l; const [wx,wy]=(q.p&&q.p._drag)||llToW(o.lat,o.lon); const [x,y]=toS(wx,wy);
+    const g=el("g",{class:"pin"+(q.k===selected?" sel":"")+(q.ok?" ok":"")+(q.faded?" faded":"")+(q.pend?" pend":""),transform:`translate(${x},${y})`,"data-k":q.k,tabindex:"0",role:"button","aria-label":q.lab},gPins);
     const R=q.ok?10:13;
     if(q.k===selected) el("circle",{r:R+4,class:"ring"},g);
     el("circle",{r:R,class:"dot",fill:q.col},g);
@@ -347,9 +431,13 @@ function drawPins(){
     if(q.dot) el("circle",{cx:R-3,cy:-R+3,r:5.5,class:"rep"},g);
   }
   if(pendingNew){ const [x,y]=toS(pendingNew.x,pendingNew.y); const g=el("g",{class:"newpin",transform:`translate(${x},${y})`},gPins);
-    el("circle",{r:14,class:"halo"},g); el("circle",{r:15},g); const t=el("text",{},g); t.textContent=creating?("#"+nextNum(cat)):"+"; }
+    el("circle",{r:14,class:"halo"},g); el("circle",{r:15},g); const t=el("text",{},g); t.textContent=creating&&CATS[cat]?("#"+nextNum(cat)):"+"; }
+  if(track){ const p=pedidos.find(x=>x.pid===track.pid);
+    if(p&&p.dlat!=null){ const [x,y]=toS(...llToW(p.dlat,p.dlon)); const g=el("g",{class:"dest",transform:`translate(${x},${y})`},gPins); el("circle",{r:12},g); const ic=el("g",{class:"ico",transform:"translate(-7,-7) scale(.58)"},g); ic.innerHTML=ICON.casa; }
+    if(track.loc){ const [x,y]=toS(...llToW(track.loc.lat,track.loc.lon)); const g=el("g",{class:"trk",transform:`translate(${x},${y})`},gPins); el("circle",{r:16,class:"halo"},g); el("circle",{r:14,class:"dot"},g); const ic=el("g",{class:"ico",transform:"translate(-7.8,-7.8) scale(.65)"},g); ic.innerHTML=ICON.moto; } }
 }
-const findPin = k=>pinCache.find(q=>q.k===k);
+let vinCache=[];
+const findPin = k=>{ const q=pinCache.find(q=>q.k===k); if(q) return q; const l=k.startsWith("l:")&&lugares.find(x=>"l:"+x.id===k); return l?{k,l}:null; };
 const nextNum = k=>Math.max(0,...catItems(k).map(q=>q.num||0))+1;
 
 // Gestos: mover, pellizcar, arrastrar puntos (solo comité en su sección de inventario)
@@ -357,7 +445,7 @@ const ptrs=new Map(); let gest=null;
 const canDrag = q=>q&&q.p&&isComite()&&cat===q.p.categoria&&!placing;
 svg.addEventListener("pointerdown",e=>{
   svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  const pin=e.target.closest&&e.target.closest(".pin");
+  const pin=e.target.closest&&(e.target.closest(".pin")||e.target.closest(".vin"));
   if(ptrs.size===1){
     if(pin){ const q=findPin(pin.dataset.k); gest={type:"pin",q,sx:e.clientX,sy:e.clientY,moved:false}; }
     else gest={type:"pan",sx:e.clientX,sy:e.clientY,tx:view.tx,ty:view.ty,moved:false};
@@ -398,8 +486,8 @@ function endPtr(e){
 svg.addEventListener("pointerup",endPtr); svg.addEventListener("pointercancel",endPtr);
 svg.addEventListener("wheel",e=>{ e.preventDefault(); const r=svg.getBoundingClientRect(); const mx=e.clientX-r.left,my=e.clientY-r.top;
   const s=Math.max(.4,Math.min(12,view.s*Math.exp(-e.deltaY*0.0015))); const wx=(mx-view.tx)/view.s,wy=(my-view.ty)/view.s; view={s,tx:mx-wx*s,ty:my-wy*s}; draw(); },{passive:false});
-svg.addEventListener("keydown",e=>{ const pin=e.target.closest&&e.target.closest(".pin"); if(pin&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); const q=findPin(pin.dataset.k); if(q){ selected=q.k; openPin(q); drawPins(); } } });
-function openPin(q){ if(q.p) openItem(q.p); else openRep(q.r); }
+svg.addEventListener("keydown",e=>{ const pin=e.target.closest&&(e.target.closest(".pin")||e.target.closest(".vin")); if(pin&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); const q=findPin(pin.dataset.k); if(q){ selected=q.k; openPin(q); drawPins(); } } });
+function openPin(q){ if(q.p) openItem(q.p); else if(q.l) openLugar(q.l); else openRep(q.r); }
 
 // ---------- Avisos ----------
 let toastTimer=null, undoFn=null;
@@ -411,15 +499,17 @@ function modal(html,cls){ const m=document.createElement("div"); m.className="mo
 // ---------- Navegación ----------
 function renderCats(){
   const chip=(k,t,icon,n)=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${cat===k}">${icon?svgI(icon):""}${t}${n?`<span class="cnt">${n}</span>`:""}</button>`;
-  $("cats").innerHTML = chip("","Inicio","") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("");
+  const nLug = pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length + (isComite()?lugares.filter(l=>l.estado==="pendiente").length:0);
+  $("cats").innerHTML = chip("","Inicio","") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("") + chip("lugares","Negocios y lugares","lugares",nLug);
   $("cats").querySelectorAll(".chip").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
   const a=$("cats").querySelector('[aria-pressed="true"]'); if(a&&a.scrollIntoView) a.scrollIntoView({inline:"nearest",block:"nearest"});
 }
 function setCat(k,keepView){
+  if(k!=="lugares") stopTrack();
   closeSheet(); setPlacing(null); cat=k; selected=null;
   const home=!k; $("home").hidden=!home; $("mapView").hidden=home; $("btnBack").hidden=home; $("topSeal").hidden=!home; $("btnList").hidden=home;
   $("topEye").textContent = home?"Comité Vecinal":"Trinidad de las Huertas";
-  $("topTitle").textContent = home?"Trinidad de las Huertas":(k==="todo"?"Mapa general":CATS[k].n);
+  $("topTitle").textContent = home?"Trinidad de las Huertas":(k==="todo"?"Mapa general":k==="lugares"?"Negocios y lugares":CATS[k].n);
   renderCats();
   if(home){ renderHome(); $("home").scrollTop=0; }
   else { summary(); legend(); fabs(); if(!keepView) requestAnimationFrame(fit); else draw(); }
@@ -430,14 +520,17 @@ $("btnFit").onclick=()=>fit();
 $("btnList").onclick=()=>openList();
 $("btnMe2").onclick=()=>openAccount();
 $("btnFilter").onclick=()=>{ filtro[cat]=!filtro[cat]; store.set("filtroTH",filtro); fabs(); drawPins(); };
-$("btnReport").onclick=()=>{ if(cat==="todo") return chooseCat(); setPlacing("report"); };
-$("btnNew").onclick=()=>setPlacing("new");
+$("btnReport").onclick=()=>{ if(cat==="todo") return chooseCat(); if(cat==="lugares") return setPlacing("negocio"); setPlacing("report"); };
+$("btnNew").onclick=()=>{ if(cat==="lugares") return chooseClave(); setPlacing("new"); };
+let placePre=null;   // datos sugeridos para el lugar que se va a colocar
 $("cancelPlace").onclick=()=>{ setPlacing(null); pendingNew=null; drawPins(); };
 $("useGps").onclick=async()=>{ const mode=placing; $("placeMsg").textContent="Buscando tu ubicación…"; const r=await locate();
   if(!r.ok){ $("placeMsg").textContent=r.msg; return; } const [x,y]=llToW(r.lat,r.lon);
-  if(x<B[0]-400||x>B[2]+400||y<B[1]-400||y>B[3]+400){ $("placeMsg").textContent="Tu ubicación queda fuera del fraccionamiento. Toca el lugar en el croquis."; return; }
+  const tol=(mode==="negocio"||mode==="clave")?1500:400;
+  if(x<B[0]-tol||x>B[2]+tol||y<B[1]-tol||y>B[3]+tol){ $("placeMsg").textContent="Tu ubicación queda fuera del fraccionamiento. Toca el lugar en el croquis."; return; }
   pendingNew={x,y}; setPlacing(null); center(r.lat,r.lon,3,0.25); placeAt(mode); };
 function fabs(){
+  if(cat==="lugares"){ $("btnFilter").hidden=true; $("btnNew").hidden=!isComite(); $("newTxt").textContent="Nuevo lugar clave"; $("reportTxt").textContent="Registrar mi negocio"; return; }
   const c=CATS[cat]; const st=c?stat(cat):null;
   $("btnFilter").hidden = !c; $("btnFilter").setAttribute("aria-pressed",String(!!filtro[cat]));
   $("filterTxt").textContent = !c?"":c.inv?(filtro[cat]?"Mostrar todos":"Solo con falla"):(filtro[cat]?"Ver atendidos":"Solo abiertos");
@@ -446,6 +539,7 @@ function fabs(){
 }
 function legend(){
   const c=CATS[cat]; const row=(col,t)=>`<span><i style="background:${col}"></i>${t}</span>`;
+  if(cat==="lugares"){ $("legend").innerHTML=row(BIZ_COL,"Negocio")+row("var(--accent)","Lugar clave")+(isComite()||lugares.some(l=>l.mio)?row("var(--muted)","Por aprobar"):""); return; }
   $("legend").innerHTML = !c ? row(EST.nuevo[1],"Nuevo")+row(EST.proceso[1],"En atención / con falla")
     : c.inv ? Object.values(c.tipos).map(([t,col])=>row(col,t)).join("")
     : row(EST.nuevo[1],"Nuevo")+row(EST.proceso[1],"En atención")+row(EST.atendido[1],"Atendido");
@@ -453,6 +547,10 @@ function legend(){
 function summary(){
   const st=(n,t,col)=>`<span class="stat">${col?`<i style="background:${col}"></i>`:""}<b>${n}</b>${t}</span>`;
   let h="";
+  if(cat==="lugares"){ const biz=lugares.filter(l=>l.clase==="negocio"&&l.estado==="aprobado"); const pend=lugares.filter(l=>l.estado==="pendiente"); const nPed=pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length;
+    h=(nPed?`<button type="button" class="stat alert" id="openPedN"><b>${nPed}</b>${nPed===1?"pedido nuevo":"pedidos nuevos"}</button>`:"")+(isComite()&&pend.length?`<button type="button" class="stat alert" id="openPendL"><b>${pend.length}</b>por aprobar</button>`:"")
+      +st(biz.length,biz.length===1?"negocio":"negocios",BIZ_COL)+st(biz.filter(l=>l.domicilio).length,"a domicilio")+st(lugares.filter(l=>l.clase==="clave").length,"lugares clave","var(--accent)");
+    $("summary").innerHTML=h; const a=$("openPedN"); if(a) a.onclick=()=>openPedidosNegocio(); const b=$("openPendL"); if(b) b.onclick=()=>openDirectorio("pend"); return; }
   if(cat==="todo"){ const pend=ORDER.reduce((a,k)=>a+stat(k).abiertos,0); h=st(pend,"pendientes en todo el fraccionamiento");
     if(isStaff()){ const n=reps.filter(r=>r.estado==="nuevo").length; if(n) h=`<button type="button" class="stat alert" id="openRep"><b>${n}</b>${n===1?"reporte nuevo":"reportes nuevos"}</button>`+h; } }
   else { const c=CATS[cat], s=stat(cat);
@@ -467,6 +565,7 @@ function summary(){
 function setPlacing(mode){
   placing=mode; $("placeBanner").hidden=!mode; if(!mode) return;
   closeSheet(); pendingNew=null; drawPins(); const c=CATS[cat];
+  if(mode==="negocio"||mode==="clave"){ $("placeMsg").textContent = mode==="negocio" ? "Toca en el croquis dónde está tu negocio o usa tu ubicación." : `Toca en el croquis dónde está ${placePre&&placePre.nombre?"«"+placePre.nombre+"»":"el lugar"} o usa tu ubicación. Puedes mover el croquis para salir del fraccionamiento.`; return; }
   $("placeMsg").textContent = mode==="new" ? `Toca el croquis donde está el ${c.item} o usa tu ubicación.`
     : c.inv ? `Toca el ${c.item} que quieres reportar. Si no está en el mapa, toca su lugar o usa tu ubicación.`
     : `Toca en el croquis dónde está el ${c.s} o usa tu ubicación.`;
@@ -474,6 +573,7 @@ function setPlacing(mode){
 function placeAt(mode){
   const [lat,lon]=wToLL(pendingNew.x,pendingNew.y);
   if(mode==="new") return openNewItem(lat,lon);
+  if(mode==="negocio"||mode==="clave"){ const pre=placePre||{}; placePre=null; return openLugarForm({clase:mode,nombre:pre.nombre||"",giro:pre.giro||"",lat,lon},true); }
   drawPins(); reportModal({cat,lat,lon,onClose:()=>{ pendingNew=null; drawPins(); }});
 }
 function chooseCat(after){
@@ -488,6 +588,10 @@ function renderHome(){
   if(!loaded){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
   const nNuevos=reps.filter(r=>r.estado==="nuevo").length;
   const mine=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const nPedNeg=pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length, nBizPend=lugares.filter(l=>l.estado==="pendiente").length;
+  const nBiz=lugares.filter(l=>l.clase==="negocio"&&l.estado==="aprobado").length;
+  const faltan=SUGERIDOS.filter(([n])=>!lugares.some(l=>l.clase==="clave"&&norm(l.nombre)===norm(n)));
+  const misPed=pedidos.filter(p=>p.soyCliente&&["recibido","preparando","camino"].includes(p.estado)).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   const card=k=>{ const c=CATS[k], s=stat(k); let mt;
     if(c.inv){ mt = s.total ? `<div class="bar" style="--mcol:${s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)"}"><i style="width:${s.pct}%"></i></div><div class="mt ${s.bad?"bad":"good"}">${s.pct}% funciona · ${s.bad} con falla</div>` : `<div class="mt">Sin ${c.item}s registrados</div>`; }
     else mt = `<div class="mt ${s.abiertos?"bad":"good"}">${s.abiertos?`${s.abiertos} ${s.abiertos===1?"abierto":"abiertos"}`:"Sin reportes abiertos"}</div>`;
@@ -496,8 +600,13 @@ function renderHome(){
     <div class="hello"><div class="hi">Hola, ${esc(String(u.nombre||"").split(" ")[0]||u.usuario)}</div><div class="sub">${esc(u.calle)} ${esc(u.casa)} · ${esc(ROLTXT[u.rol]||"Vecino")}</div></div>
     <button type="button" class="bigreport" id="hReport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>Reportar un problema</button>
     ${isStaff()&&nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
+    ${nPedNeg?`<button type="button" class="alertcard" id="hPedNeg"><b>${nPedNeg}</b><span>${nPedNeg===1?"pedido nuevo en tu negocio":"pedidos nuevos en tu negocio"}</span></button>`:""}
+    ${isComite()&&nBizPend?`<button type="button" class="alertcard" id="hBizPend"><b>${nBizPend}</b><span>${nBizPend===1?"negocio por aprobar":"negocios por aprobar"}</span></button>`:""}
+    ${isComite()&&faltan.length?`<button type="button" class="alertcard" id="hClave"><span>Faltan lugares clave por ubicar: <b style="font:700 14.5px var(--body);color:var(--ink)">${esc(faltan.map(s=>s[0]).join(", "))}</b></span></button>`:""}
+    ${misPed.length?`<div class="h3">Mis pedidos</div><div class="mine">${misPed.slice(0,3).map(pedLi).join("")}</div>`:""}
     <div class="h3">Secciones</div>
     <div class="cards">${ORDER.map(card).join("")}
+      <button type="button" class="card" data-k="lugares"><span class="ic" style="background:${BIZ_COL}">${svgI("lugares")}</span><span class="nm">Negocios y lugares</span><span class="ds">Directorio, menús y pedidos a domicilio</span><span class="mt">${nBiz?`${nBiz} ${nBiz===1?"negocio":"negocios"}`:"Registra tu negocio"}</span></button>
       <button type="button" class="card wide" data-k="todo"><span class="ic" style="background:var(--accent)">${svgI("todo")}</span><span><span class="nm" style="display:block">Mapa general</span><span class="ds">Todos los pendientes del fraccionamiento en un solo croquis</span></span></button></div>
     <div class="h3">Mis reportes</div>
     ${mine.length?`<div class="mine">${mine.slice(0,5).map(repLi).join("")}</div>${mine.length>5?`<button type="button" class="linkbtn" id="hMine">Ver mis ${mine.length} reportes</button>`:""}`:`<div class="mine"><div class="empty">Aún no has hecho reportes. Cuando reportes algo, aquí verás cómo va.</div></div>`}
@@ -508,6 +617,10 @@ function renderHome(){
   const hp=$("hPend"); if(hp) hp.onclick=()=>openPendientes("");
   const hm=$("hMine"); if(hm) hm.onclick=()=>openMine();
   const hi=$("hImport"); if(hi) hi.onclick=()=>importar();
+  const hpn=$("hPedNeg"); if(hpn) hpn.onclick=()=>openPedidosNegocio();
+  const hbp=$("hBizPend"); if(hbp) hbp.onclick=()=>{ setCat("lugares"); openDirectorio("pend"); };
+  const hcl=$("hClave"); if(hcl) hcl.onclick=()=>{ setCat("lugares"); chooseClave(); };
+  $("home").querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
   $("home").querySelectorAll(".card").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
   wireRepLi($("home"));
 }
@@ -523,7 +636,7 @@ function focusRep(r){
 }
 
 // ---------- Hojas ----------
-function closeSheet(){ const sh=$("sheet"); sh.classList.remove("compact"); sh.hidden=true; sh.innerHTML=""; selected=null; pendingNew=null; creating=null; if(cat) drawPins(); }
+function closeSheet(){ if(track) stopTrack(); const sh=$("sheet"); sh.classList.remove("compact"); sh.hidden=true; sh.innerHTML=""; selected=null; pendingNew=null; creating=null; if(cat) drawPins(); }
 function openSheet(html,compact){ const sh=$("sheet"); sh.classList.toggle("compact",!!compact); sh.hidden=false; sh.scrollTop=0; sh.innerHTML=`<div class="grab"></div>`+html; const x=sh.querySelector(".x"); if(x) x.onclick=closeSheet; return sh; }
 const xBtn=`<button class="x" type="button" aria-label="Cerrar">×</button>`;
 const histH = H=>{ H=(Array.isArray(H)?H:[]).slice().reverse(); return `<details class="hist"><summary>Historial${H.length?` (${H.length})`:""}</summary><ol>${H.map(h=>`<li><time>${esc(fechaHora(h.f))}</time><span>${esc(h.t)}${h.u?` · <i>${esc(h.u)}</i>`:""}</span></li>`).join("")||"<li><span>Sin movimientos</span></li>"}</ol></details>`; };
@@ -731,6 +844,7 @@ function reportModal(o){
 // ---------- Listas ----------
 function openList(){
   if(cat==="todo") return openPendientes("",true);
+  if(cat==="lugares") return openDirectorio();
   const c=CATS[cat]; if(!c) return;
   let f="todos", q="";
   const render=()=>{
@@ -785,6 +899,8 @@ function openAccount(){
   const sh=openSheet(`<div class="shead"><div class="avatar" style="width:52px;height:52px;font-size:18px">${esc(initials(u.nombre))}</div><div class="t"><h2>${esc(u.nombre)}</h2><div style="color:var(--muted);font-size:13.5px">@${esc(u.usuario)} · ${esc(ROLTXT[u.rol]||"Vecino")}</div><div style="color:var(--muted);font-size:13.5px">${esc(u.calle)} ${esc(u.casa)}${u.telefono?" · "+esc(u.telefono):""}</div></div>${xBtn}</div>
     <div class="list">
       <button class="li" type="button" id="aMine"><span class="b"><span class="p">Mis reportes</span></span></button>
+      <button class="li" type="button" id="aPed"><span class="b"><span class="p">Mis pedidos</span></span></button>
+      ${lugares.some(l=>l.mio&&l.clase==="negocio")?`<button class="li" type="button" id="aBiz"><span class="b"><span class="p">Mi negocio</span><span class="s" style="display:block">Datos, menú y pedidos recibidos</span></span></button>`:`<button class="li" type="button" id="aBizNew"><span class="b"><span class="p">Registrar mi negocio</span><span class="s" style="display:block">Aparece en el directorio cuando el comité lo aprueba</span></span></button>`}
       <button class="li" type="button" id="aPerfil"><span class="b"><span class="p">Editar mis datos</span><span class="s" style="display:block">Nombre, calle, casa y teléfono</span></span></button>
       <button class="li" type="button" id="aPw"><span class="b"><span class="p">Cambiar mi contraseña</span></span></button>
       ${isStaff()?`<button class="li" type="button" id="aPend"><span class="b"><span class="p">Reportes nuevos</span><span class="s" style="display:block">De todas las secciones</span></span></button>`:""}
@@ -796,7 +912,9 @@ function openAccount(){
       <button class="li" type="button" id="aOut"><span class="b"><span class="p" style="color:var(--rep)">Cerrar sesión</span></span></button>
     </div>`);
   const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
-  on("aMine",openMine); on("aPerfil",editPerfil); on("aPw",changePw); on("aPend",()=>openPendientes("")); on("aUsers",openUsers); on("aLog",openLog);
+  on("aMine",openMine); on("aPed",openMisPedidos); on("aPerfil",editPerfil);
+  on("aBiz",()=>{ const mios=lugares.filter(l=>l.mio&&l.clase==="negocio"); setCat("lugares",true); requestAnimationFrame(()=>{ if(mios.length===1){ center(mios[0].lat,mios[0].lon,3); openLugar(mios[0]); } else openDirectorio("mios"); }); });
+  on("aBizNew",()=>{ setCat("lugares"); setTimeout(()=>setPlacing("negocio"),60); }); on("aPw",changePw); on("aPend",()=>openPendientes("")); on("aUsers",openUsers); on("aLog",openLog);
   on("aXls",downloadAll); on("aClave",changeClaveComite); on("aComite",hacermeComite); on("aOut",()=>{ logout(); });
 }
 const initials = n=>String(n||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("")||"?";
@@ -847,6 +965,220 @@ async function openLog(){
     <div class="list blog">${b.map(x=>`<div class="li"><span class="b"><span class="p">${esc(x.accion)}</span><span class="s" style="display:block;white-space:normal">${esc(x.nombre||x.usuario)}${x.detalle?" · "+esc(x.detalle):""}</span></span><time>${esc(fechaHora(x.f))}</time></div>`).join("")||'<div class="empty">Sin movimientos.</div>'}</div>`);
 }
 
+// ---------- Negocios y lugares ----------
+const money = n=>"$"+(Math.round((+n||0)*100)/100).toLocaleString("es-MX",{minimumFractionDigits:0,maximumFractionDigits:2});
+const waNum = s=>{ const d=String(s||"").replace(/\D/g,""); if(!d) return ""; if(d.length===10) return "52"+d; if(d.length===13&&d.startsWith("521")) return "52"+d.slice(3); return d; };
+const waLink = (num,text)=>`https://wa.me/${waNum(num)}${text?"?text="+encodeURIComponent(text):""}`;
+const tipoL = l=>l.clase==="clave"?(CLAVE_T[l.giro]||CLAVE_T.otro):(GIROS[l.giro]||GIROS.otro);
+const colL = l=>l.clase==="clave"?"var(--accent)":l.estado==="aprobado"?BIZ_COL:"var(--muted)";
+const esComida = l=>["comida","cafe","pan"].includes(l.giro);
+function chooseClave(){
+  const falt=SUGERIDOS.filter(([n])=>!lugares.some(l=>l.clase==="clave"&&norm(l.nombre)===norm(n)));
+  const m=modal(`<h3>Nuevo lugar clave</h3><p>Elige cuál vas a ubicar. Después tocas su lugar en el croquis, usas tu ubicación o pegas las coordenadas de Google Maps.</p>
+    <div class="chooser" style="grid-template-columns:1fr">${falt.map(([n,g])=>`<button type="button" data-n="${esc(n)}" data-g="${g}"><span class="ic" style="background:var(--accent)">${svgI(CLAVE_T[g][1])}</span>${esc(n)}</button>`).join("")}
+    <button type="button" data-n="" data-g=""><span class="ic" style="background:var(--muted)">${svgI("estrella")}</span>Otro lugar</button></div>
+    <div class="row"><button type="button" class="btn" id="ckNo">Cancelar</button></div>`);
+  m.querySelector("#ckNo").onclick=()=>m.remove();
+  m.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{ m.remove(); const s=SUGERIDOS.find(x=>x[0]===b.dataset.n); if(cat!=="lugares") setCat("lugares");
+    if(s&&s[2]) return setTimeout(()=>openLugarForm({clase:"clave",nombre:s[0],giro:s[1],lat:s[2],lon:s[3],_aprox:true},true),80);
+    placePre={nombre:b.dataset.n,giro:b.dataset.g}; setTimeout(()=>setPlacing("clave"),60); });
+}
+function lugarHead(l,isNew){ const t=tipoL(l);
+  return `<div class="shead"><div class="badge" style="background:${colL(l)}">${svgI(t[1])}</div><div class="t"><h2>${isNew?(l.clase==="clave"?"Nuevo lugar clave":"Registrar mi negocio"):esc(l.nombre)}</h2>
+    <span class="tag" style="background:${colL(l)}">${esc(t[0])}</span>${l.clase==="negocio"&&!isNew&&l.estado!=="aprobado"?` <span class="tag" style="background:${l.estado==="rechazado"?"var(--rep)":"var(--gold)"}">${l.estado==="rechazado"?"No aprobado":"Por aprobar"}</span>`:""}
+    <div class="coords" id="sheetCoords">${(+l.lat).toFixed(6)}, ${(+l.lon).toFixed(6)}</div></div>${xBtn}</div>`; }
+function openLugarForm(l,isNew){
+  const clave=l.clase==="clave"; const tipos=clave?CLAVE_T:GIROS;
+  const d={...l}; delete d._aprox; creating=d; if(isNew){ pendingNew={x:llToW(l.lat,l.lon)[0],y:llToW(l.lat,l.lon)[1]}; if(l._aprox){ const r=svg.getBoundingClientRect(); const [x,y]=llToW(l.lat,l.lon); view={s:1.1,tx:r.width/2-x*1.1,ty:r.height*0.22-y*1.1}; draw(); } else center(l.lat,l.lon,2.2,0.2); }
+  const sugerencias=clave?`<datalist id="sugL">${SUGERIDOS.map(([n])=>`<option value="${esc(n)}">`).join("")}</datalist>`:"";
+  const sh=openSheet(lugarHead(d,isNew)+`<form id="lform" autocomplete="off">
+    <label>${clave?"Nombre del lugar":"Nombre del negocio"}<input name="nombre" value="${esc(d.nombre)}" maxlength="80" required ${clave?'list="sugL"':""} placeholder="${clave?"Ej. Cancha de fútbol":"Ej. Café La Huerta"}"></label>${sugerencias}
+    <label>${clave?"Tipo de lugar":"Giro"}<select name="giro" required>${!d.giro?`<option value="" selected disabled>Elige…</option>`:""}${Object.entries(tipos).map(([k,[t]])=>`<option value="${k}"${d.giro===k?" selected":""}>${esc(t)}</option>`).join("")}</select></label>
+    <label>${clave?"Descripción o referencia":"¿Qué ofreces?"}<textarea name="descripcion" maxlength="600" placeholder="${clave?"Ej. Frente a la Av. Trinidad de las Huertas; misa los domingos a las 9:00":"Ej. Café de olla, pan dulce y desayunos"}">${esc(d.descripcion)}</textarea></label>
+    ${clave?"":`<label>Horario<input name="horario" value="${esc(d.horario)}" maxlength="120" placeholder="Ej. Lun a sáb, 8:00 a 20:00"></label>
+    <div class="row2"><label>WhatsApp<input name="whatsapp" type="tel" inputmode="tel" value="${esc(d.whatsapp)}" maxlength="20" placeholder="10 dígitos"></label><label>Teléfono<input name="telefono" type="tel" inputmode="tel" value="${esc(d.telefono)}" maxlength="20" placeholder="Opcional"></label></div>
+    <label class="check"><input type="checkbox" name="domicilio"${d.domicilio?" checked":""}> Tengo servicio a domicilio</label>`}
+    <label>Dirección o referencia<input name="direccion" value="${esc(d.direccion)}" maxlength="160" placeholder="Ej. Huerto Los Olmos 12"></label>
+    <label>Enlace de Google Maps (opcional)<input name="maps" value="${esc(d.maps)}" maxlength="300" placeholder="Pega el enlace del lugar en Google Maps"></label>
+    <div class="hint${l._aprox?" err":""}" id="mapsHint">${l._aprox?`Ubicación aproximada tomada de OpenStreetMap. <a href="${gmaps(l.lat,l.lon)}" target="_blank" rel="noopener" style="color:inherit">Revisa el punto en Google Maps</a>; si no es ahí, toca el croquis donde va o pega su enlace de Google Maps.`:"Si el enlace trae coordenadas, el punto se acomoda solo. También puedes tocar el croquis para moverlo."}</div>
+    <button type="button" class="btn gpsbtn" id="lGps"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Usar mi ubicación actual</button>
+    <div class="hint err" id="lErr" hidden></div>
+    <div class="actions"><button class="btn primary" type="submit">${isNew?(clave?"Guardar lugar":"Enviar para aprobación"):"Guardar cambios"}</button>${!isNew?`<button type="button" class="btn" id="lCancel">Cancelar</button>`:""}</div>
+    ${isNew&&!clave&&!isComite()?`<div class="hint">El comité revisa los negocios antes de que aparezcan en el directorio. Después podrás subir tu foto y tu menú.</div>`:""}
+  </form>`,isNew);
+  drawPins();
+  const setLoc=(lat,lon,msg)=>{ d.lat=lat; d.lon=lon; const [x,y]=llToW(lat,lon); pendingNew={x,y}; $("sheetCoords").textContent=lat.toFixed(6)+", "+lon.toFixed(6); center(lat,lon,2.5,0.22); const h=$("mapsHint"); h.className="hint ok"; h.textContent=msg; };
+  const mi=sh.querySelector('[name="maps"]'); const tryMaps=()=>{ const r=parseLL(mi.value,1500); const h=$("mapsHint"); if(!mi.value.trim()) return; if(r&&!r.far) setLoc(r.lat,r.lon,"Ubicación tomada del enlace."); else if(r&&r.far){ h.className="hint err"; h.textContent="Ese punto queda muy lejos del fraccionamiento."; } else { h.className="hint"; h.textContent="Se guardará el enlace. Para acomodar el punto toca el croquis o usa tu ubicación."; } };
+  mi.addEventListener("input",tryMaps); mi.addEventListener("paste",()=>setTimeout(tryMaps,0));
+  $("lGps").onclick=async()=>{ const h=$("mapsHint"); h.className="hint"; h.textContent="Buscando tu ubicación…"; const r=await locate(); if(!r.ok){ h.className="hint err"; h.textContent=r.msg; return; } setLoc(r.lat,r.lon,`Ubicación del GPS (±${Math.round(r.acc)} m).`); };
+  const lc=$("lCancel"); if(lc) lc.onclick=()=>openLugar(l);
+  $("lform").onsubmit=async ev=>{ ev.preventDefault(); const fd=new FormData($("lform")); const o={}; for(const [k,v] of fd) o[k]=String(v).trim(); o.domicilio=!!fd.get("domicilio");
+    if(creating&&typeof creating.lat==="number"){ o.lat=+(+creating.lat).toFixed(7); o.lon=+(+creating.lon).toFixed(7); }
+    const b=ev.submitter||$("lform").querySelector('[type="submit"]'); b.disabled=true;
+    try{ const r=await api("lugarGuardar",{id:isNew?"":l.id,clase:l.clase,data:o}); creating=null; pendingNew=null;
+      lugares=[...lugares.filter(x=>x.id!==r.lugar.id),r.lugar]; summary(); renderCats();
+      toast(isNew?(r.lugar.estado==="pendiente"?"Negocio enviado. El comité lo revisará.":"Lugar guardado"):"Cambios guardados"); selected="l:"+r.lugar.id; openLugar(r.lugar);
+    }catch(e){ const er=$("lErr"); er.textContent=errTxt(e); er.hidden=false; b.disabled=false; } };
+  setTimeout(()=>{ try{ if(!d.nombre) sh.querySelector('[name="nombre"]').focus(); }catch(e){} },60);
+}
+function openLugar(l){
+  l=lugares.find(x=>x.id===l.id)||l; selected="l:"+l.id; drawPins();
+  const t=tipoL(l), puede=isComite()||l.mio, clave=l.clase==="clave";
+  const menu=Array.isArray(l.menu)?l.menu:[];
+  const wa=l.whatsapp?waNum(l.whatsapp):"";
+  const misAbiertos=pedidos.filter(p=>p.soyCliente&&p.lugarId===l.id&&["recibido","preparando","camino"].includes(p.estado));
+  const recibidos=pedidos.filter(p=>p.soyNegocio&&p.lugarId===l.id&&["recibido","preparando","camino"].includes(p.estado));
+  const puedePedir=!clave&&l.estado==="aprobado"&&!l.mio&&(menu.length||l.domicilio||wa);
+  const sh=openSheet(lugarHead(l,false)+fotoH(l.foto,`Foto de ${l.nombre}`,puede?"fotoL":null,clave?"Agregar foto real del lugar":"Agregar foto del negocio")+
+    (l.descripcion?`<p style="margin:0 0 12px;font-size:15px;line-height:1.4">${esc(l.descripcion)}</p>`:"")+
+    `<dl class="facts">${l.horario?`<div class="wide"><dt>Horario</dt><dd>${esc(l.horario)}</dd></div>`:""}${l.direccion?`<div class="wide"><dt>Dirección</dt><dd>${esc(l.direccion)}</dd></div>`:""}
+      ${!clave?`<div><dt>A domicilio</dt><dd>${l.domicilio?"Sí":"No"}</dd></div>`:""}${!clave&&menu.length?`<div><dt>Menú</dt><dd>${menu.length} ${menu.length===1?"producto":"productos"}</dd></div>`:""}</dl>`+
+    (misAbiertos.length?`<div class="seglbl">Tus pedidos en curso</div><div class="mine" style="margin-bottom:12px">${misAbiertos.map(pedLi).join("")}</div>`:"")+
+    `<div class="biz-actions">
+      ${puedePedir?`<button type="button" class="btn primary wide" id="lPedir">${svgI("pedido",'width="18" height="18"')}${menu.length?"Ver menú y pedir":"Hacer un pedido"}</button>`:""}
+      ${wa?`<a class="btn wa" href="${waLink(wa,`Hola, te escribo desde la app Trinidad de las Huertas.`)}" target="_blank" rel="noopener">WhatsApp</a>`:""}
+      ${l.telefono?`<a class="btn" href="tel:${esc(l.telefono)}">Llamar</a>`:""}
+      <a class="btn${wa||l.telefono?"":" wide"}" href="${l.maps&&/^https?:\/\//.test(l.maps)?esc(l.maps):gmaps(l.lat,l.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
+      ${!puedePedir&&menu.length?`<button type="button" class="btn" id="lMenu">Ver menú</button>`:""}
+    </div>`+
+    (l.menuFoto?`<div class="seglbl">Foto del menú</div><div class="foto"><img src="${fotoURL(l.menuFoto)}" alt="Menú de ${esc(l.nombre)}" loading="lazy" referrerpolicy="no-referrer"></div>`:"")+
+    (puede&&!clave?`<div class="seglbl">${l.mio?"Tu negocio":"Administrar negocio"}</div><div class="biz-actions">
+      <button type="button" class="btn" id="lEdMenu">Editar menú</button><label class="btn fotobtn" for="fotoM" style="justify-content:center">${svgCam}${l.menuFoto?"Cambiar foto del menú":"Foto del menú"}</label><input type="file" id="fotoM" accept="image/*" hidden>
+      ${l.mio?`<button type="button" class="btn wide" id="lPedN">Pedidos recibidos${recibidos.length?` · ${recibidos.length} en curso`:""}</button>`:""}</div>`:"")+
+    (isComite()&&!clave?`<div class="seglbl">Aprobación del comité</div><div class="seg seg3" role="group">${[["aprobado","Aprobado"],["pendiente","Por aprobar"],["rechazado","No aprobado"]].map(([k,t])=>`<button type="button" data-ls="${k}" aria-pressed="${l.estado===k}" style="${l.estado===k?`background:${k==="aprobado"?"var(--done)":k==="pendiente"?"var(--gold)":"var(--rep)"};color:#fff;border-color:transparent`:""}">${t}</button>`).join("")}</div>${l.dueno?`<div class="meta" style="margin:-6px 0 12px">Registró: @${esc(l.dueno)}</div>`:""}`:"")+
+    (puede?`<div class="actions"><button type="button" class="btn" id="lEdit">Editar datos y ubicación</button><button type="button" class="btn danger" id="lDel">Eliminar</button></div><div id="lDelBox"></div>`:"")+
+    (l.actualizado?`<div class="meta">Actualizado ${esc(fechaHora(l.actualizado))}</div>`:""));
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on("lPedir",()=>pedidoModal(l)); on("lMenu",()=>pedidoModal(l,true)); on("lEdMenu",()=>editMenu(l)); on("lEdit",()=>openLugarForm(l,false)); on("lPedN",()=>openPedidosNegocio(l.id));
+  wireRepLi(sh); sh.querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
+  wireFotoUpload("fotoL",async b64=>{ const r=await api("lugarFoto",{id:l.id,data:b64,campo:"foto"}); l.foto=r.foto; openLugar(l); });
+  wireFotoUpload("fotoM",async b64=>{ const r=await api("lugarFoto",{id:l.id,data:b64,campo:"menuFoto"}); l.menuFoto=r.foto; openLugar(l); });
+  sh.querySelectorAll("[data-ls]").forEach(b=>b.onclick=async()=>{ const e=b.dataset.ls; if(e===l.estado) return; if(await guard(()=>api("lugarEstado",{id:l.id,estado:e}),e==="aprobado"?"Negocio aprobado":e==="rechazado"?"Negocio no aprobado":"Negocio en revisión")){ l.estado=e; summary(); renderCats(); openLugar(l); } });
+  on("lDel",()=>{ $("lDelBox").innerHTML=`<div class="confirm">¿Eliminar «${esc(l.nombre)}»? <button class="btn danger" type="button" id="lYes">Sí, eliminar</button><button class="btn" type="button" id="lNo">No</button></div>`;
+    $("lNo").onclick=()=>{ $("lDelBox").innerHTML=""; }; $("lYes").onclick=async()=>{ if(await guard(()=>api("lugarBorrar",{id:l.id}),"Eliminado")){ lugares=lugares.filter(x=>x.id!==l.id); closeSheet(); summary(); } }; });
+}
+function editMenu(l){
+  let rows=(Array.isArray(l.menu)?l.menu:[]).map(x=>({...x})); if(!rows.length) rows=[{n:"",p:"",d:""}];
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>Menú de ${esc(l.nombre)}</h3><p>Escribe cada producto con su precio. Los vecinos lo eligen al hacer su pedido.</p><div class="medit" id="mRows"></div>
+    <button type="button" class="btn" id="mAdd">+ Agregar producto</button><div class="hint err" id="mErr" hidden></div>
+    <div class="row"><button type="button" class="btn" id="mNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto">Guardar menú</button></div></form>`,"wide");
+  const box=m.querySelector("#mRows");
+  const read=()=>{ rows=[...box.querySelectorAll(".mr")].map(r=>({n:r.querySelector('[data-f="n"]').value.trim(),p:r.querySelector('[data-f="p"]').value,d:r.querySelector('[data-f="d"]').value.trim()})); };
+  const render=()=>{ box.innerHTML=rows.map((r,i)=>`<div class="mr"><input data-f="n" placeholder="Producto" value="${esc(r.n)}" maxlength="60" aria-label="Producto"><input data-f="p" type="number" inputmode="decimal" min="0" step="0.5" placeholder="$" value="${esc(r.p)}" aria-label="Precio"><button type="button" class="x2" data-del="${i}" aria-label="Quitar">×</button><textarea data-f="d" placeholder="Descripción (opcional)" maxlength="120" aria-label="Descripción">${esc(r.d)}</textarea></div>`).join("");
+    box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ read(); rows.splice(+b.dataset.del,1); if(!rows.length) rows=[{n:"",p:"",d:""}]; render(); }); };
+  render();
+  m.querySelector("#mAdd").onclick=()=>{ read(); rows.push({n:"",p:"",d:""}); render(); const ins=box.querySelectorAll('[data-f="n"]'); ins[ins.length-1].focus(); };
+  m.querySelector("#mNo").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); read(); const menu=rows.filter(r=>r.n).map(r=>({n:r.n,p:+r.p||0,d:r.d}));
+    try{ const r=await api("lugarGuardar",{id:l.id,clase:l.clase,data:{menu}}); lugares=lugares.map(x=>x.id===l.id?r.lugar:x); m.remove(); toast("Menú guardado"); openLugar(r.lugar); }
+    catch(e){ const er=m.querySelector("#mErr"); er.textContent=errTxt(e); er.hidden=false; } };
+}
+function pedidoModal(l,soloVer){
+  const menu=Array.isArray(l.menu)?l.menu:[]; const q={}; const u=S.user;
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${soloVer?"Menú":"Pedido"} · ${esc(l.nombre)}</h3>
+    ${menu.length?`<div class="menu">${menu.map((x,i)=>`<div class="mi"><span class="b"><span class="n">${esc(x.n)}</span>${x.d?`<span class="d" style="display:block">${esc(x.d)}</span>`:""}</span><span class="p">${x.p?money(x.p):""}</span>${soloVer?"":`<span class="qty"><button type="button" data-m="${i}" aria-label="Quitar uno">−</button><b id="q${i}">0</b><button type="button" data-p="${i}" aria-label="Agregar uno">+</button></span>`}</div>`).join("")}</div>`:""}
+    ${soloVer?"":`${menu.length?`<div class="total"><span>Total</span><span id="pTot">$0</span></div>`:""}
+    <label>${menu.length?"Nota o algo que no esté en el menú (opcional)":"¿Qué quieres pedir?"}<textarea id="pNota" maxlength="500" placeholder="${menu.length?"Ej. Sin azúcar, con leche deslactosada":"Escribe tu pedido"}" ${menu.length?"":"required"}></textarea></label>
+    <div class="radio" role="radiogroup" aria-label="Entrega">${l.domicilio?`<label><input type="radio" name="ent" value="domicilio" checked> A domicilio · ${esc(u.calle)} ${esc(u.casa)}</label>`:""}<label><input type="radio" name="ent" value="recoger"${l.domicilio?"":" checked"}> Paso a recogerlo</label></div>
+    ${l.domicilio?`<label class="check" id="gpsWrap"><input type="checkbox" id="pGps"> Compartir la ubicación de mi casa para que me encuentren</label>`:""}
+    <div class="hint" style="margin:0">El pedido queda en la app y ${l.whatsapp?"después lo mandas por WhatsApp al negocio":"el negocio lo ve en su lista de pedidos"}. Se paga directo al negocio.</div>
+    <div class="hint err" id="pErr" hidden></div>`}
+    <div class="row"><button type="button" class="btn" id="pNo">${soloVer?"Cerrar":"Cancelar"}</button>${soloVer?"":`<button type="submit" class="btn primary" style="flex:0 0 auto" id="pOk">Enviar pedido</button>`}</div></form>`,"wide");
+  m.querySelector("#pNo").onclick=()=>m.remove(); if(soloVer) return;
+  const tot=()=>{ const t=menu.reduce((s,x,i)=>s+(q[i]||0)*(+x.p||0),0); const e=m.querySelector("#pTot"); if(e) e.textContent=money(t); };
+  m.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ const i=b.dataset.p; q[i]=Math.min(99,(q[i]||0)+1); m.querySelector("#q"+i).textContent=q[i]; tot(); });
+  m.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ const i=b.dataset.m; q[i]=Math.max(0,(q[i]||0)-1); m.querySelector("#q"+i).textContent=q[i]; tot(); });
+  m.querySelectorAll('[name="ent"]').forEach(r=>r.onchange=()=>{ const w=m.querySelector("#gpsWrap"); if(w) w.hidden=m.querySelector('[name="ent"]:checked').value!=="domicilio"; });
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); const er=m.querySelector("#pErr"); er.hidden=true;
+    const its=menu.map((x,i)=>({n:x.n,q:q[i]||0,p:+x.p||0})).filter(x=>x.q>0); const nota=m.querySelector("#pNota").value.trim();
+    if(!its.length&&!nota){ er.textContent="Elige al menos un producto o escribe tu pedido."; er.hidden=false; return; }
+    const ent=(m.querySelector('[name="ent"]:checked')||{}).value||"recoger"; const b=m.querySelector("#pOk"); b.disabled=true; b.textContent="Enviando…";
+    let dlat=null,dlon=null; const g=m.querySelector("#pGps"); if(ent==="domicilio"&&g&&g.checked){ const r=await locate(); if(r.ok){ dlat=+r.lat.toFixed(6); dlon=+r.lon.toFixed(6); } }
+    try{ const r=await api("pedidoCrear",{lugarId:l.id,items:its,nota,entrega:ent,dlat,dlon}); m.remove(); await refresh();
+      const lines=r.items.map(x=>`• ${x.q} x ${x.n}${x.p?` (${money(x.p*x.q)})`:""}`);
+      const txt=`Hola, soy ${u.nombre} (${u.calle} ${u.casa}). Te hago este pedido desde la app Trinidad de las Huertas (folio ${r.pid}):\n${lines.join("\n")}${nota?`\nNota: ${nota}`:""}${r.total?`\nTotal: ${money(r.total)}`:""}\nEntrega: ${r.entrega==="domicilio"?`a domicilio en ${u.calle} ${u.casa}`:"paso a recogerlo"}`;
+      const c=modal(`<h3>¡Pedido enviado!</h3><p>Ya está en la lista de pedidos de <b>${esc(l.nombre)}</b>.${l.whatsapp?" Mándalo también por WhatsApp para que lo vean al momento:":""}</p>
+        ${l.whatsapp?`<a class="btn wa" style="justify-content:center" href="${waLink(l.whatsapp,txt)}" target="_blank" rel="noopener">Enviar por WhatsApp</a>`:""}
+        <div class="row"><button type="button" class="btn" id="cOk">Listo</button><button type="button" class="btn primary" style="flex:0 0 auto" id="cVer">Ver mi pedido</button></div>`);
+      c.querySelector("#cOk").onclick=()=>c.remove(); c.querySelector("#cVer").onclick=()=>{ c.remove(); const p=pedidos.find(x=>x.pid===r.pid); if(p) openPedido(p); };
+    }catch(e){ er.textContent=errTxt(e); er.hidden=false; b.disabled=false; b.textContent="Enviar pedido"; } };
+}
+function pedLi(p){ const st=PEST[p.estado]||PEST.recibido; const n=(p.items||[]).reduce((s,x)=>s+x.q,0);
+  const sub=[p.soyNegocio&&!p.soyCliente?p.nombre:p.lugarNombre, n?`${n} ${n===1?"producto":"productos"}`:"", p.total?money(p.total):"", hace(p.fecha)].filter(Boolean).join(" · ");
+  return `<button class="li" type="button" data-pid="${esc(p.pid)}"><span class="ic" style="background:${BIZ_COL}">${svgI("pedido")}</span><span class="b"><span class="p">${esc(p.soyNegocio&&!p.soyCliente?`Pedido de ${String(p.nombre).split(" ")[0]}`:p.lugarNombre)}</span><span class="s" style="display:block">${esc(sub)}</span></span><span class="pill" style="background:${st[1]}">${st[0]}</span></button>`; }
+function openPedido(p){
+  p=pedidos.find(x=>x.pid===p.pid)||p; const st=PEST[p.estado]||PEST.recibido; const l=lugares.find(x=>x.id===p.lugarId);
+  const neg=p.soyNegocio, abierto=["recibido","preparando","camino"].includes(p.estado);
+  const items=(p.items||[]);
+  const sh=openSheet(`<div class="shead"><div class="badge" style="background:${BIZ_COL}">${svgI("pedido")}</div><div class="t"><h2>${esc(neg?`Pedido de ${p.nombre}`:p.lugarNombre)}</h2><span class="tag" style="background:${st[1]}">${st[0]}</span><div class="coords">Folio ${esc(p.pid)} · ${esc(fechaHora(p.fecha))}</div></div>${xBtn}</div>
+    ${items.length?`<div class="menu">${items.map(x=>`<div class="mi"><span class="b"><span class="n">${x.q} × ${esc(x.n)}</span></span><span class="p">${x.p?money(x.p*x.q):""}</span></div>`).join("")}</div>${p.total?`<div class="total" style="margin:-6px 0 10px"><span>Total</span><span>${money(p.total)}</span></div>`:""}`:""}
+    <dl class="facts">${p.nota?`<div class="wide"><dt>${items.length?"Nota":"Pedido"}</dt><dd>${esc(p.nota)}</dd></div>`:""}<div class="wide"><dt>Entrega</dt><dd>${p.entrega==="domicilio"?`A domicilio · ${esc(p.casa)}`:"Pasa a recogerlo"}</dd></div></dl>
+    ${neg?`<div class="who"><b>${esc(p.nombre)}</b><span>${esc(p.casa)}</span>${p.telefono?`<span><a href="tel:${esc(p.telefono)}">${esc(p.telefono)}</a> · <a href="${waLink(p.telefono,`Hola ${String(p.nombre).split(" ")[0]}, te escribo de ${p.lugarNombre} por tu pedido ${p.pid}.`)}" target="_blank" rel="noopener">WhatsApp</a></span>`:""}</div>`:""}
+    ${neg&&abierto?`<div class="seglbl">Estado del pedido</div><div class="seg seg3" role="group">${["preparando","camino","entregado"].map(k=>`<button type="button" data-pe="${k}" aria-pressed="${p.estado===k}" style="${p.estado===k?`background:${PEST[k][1]};color:#fff;border-color:transparent`:""}">${PEST[k][0]}</button>`).join("")}</div>
+      ${p.estado==="camino"&&p.entrega==="domicilio"?(share&&share.pid===p.pid?`<button type="button" class="btn reportbtn" id="pShareOff">Dejar de compartir mi ubicación</button>`:`<button type="button" class="btn reportbtn primary" id="pShare">${svgI("moto",'width="18" height="18"')}Compartir mi ubicación en vivo</button><div class="hint" style="margin:-6px 0 12px">El cliente verá en el mapa por dónde vas. Deja la app abierta mientras entregas.</div>`):""}`:""}
+    ${!neg&&p.estado==="camino"?`<button type="button" class="btn reportbtn primary" id="pTrack">${svgI("moto",'width="18" height="18"')}Ver dónde va mi pedido</button><div id="trkInfo" class="hint" style="margin:-6px 0 12px"></div>`:""}
+    <div class="actions">${!neg&&l&&l.whatsapp?`<a class="btn wa" href="${waLink(l.whatsapp,`Hola, te escribo por mi pedido ${p.pid} de la app Trinidad de las Huertas.`)}" target="_blank" rel="noopener">WhatsApp al negocio</a>`:""}
+      ${l?`<button type="button" class="btn" id="pVerL">Ver el negocio</button>`:""}
+      ${(neg&&abierto)||(!neg&&p.estado==="recibido")?`<button type="button" class="btn danger" id="pCancel">Cancelar pedido</button>`:""}</div>`+histH(p.historial), !!(track&&track.pid===p.pid));
+  sh.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>setPedEstado(p,b.dataset.pe));
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on("pCancel",()=>setPedEstado(p,"cancelado")); on("pShare",()=>startShare(p)); on("pShareOff",()=>{ stopShare(); openPedido(p); });
+  on("pTrack",()=>startTrack(p)); on("pVerL",()=>{ if(cat!=="lugares") setCat("lugares",true); requestAnimationFrame(()=>{ center(l.lat,l.lon,3); openLugar(l); }); });
+  if(track&&track.pid===p.pid) trackInfo();
+}
+async function setPedEstado(p,e){
+  if(await guard(()=>api("pedidoEstado",{pid:p.pid,estado:e}),`Pedido: ${PEST[e][0].toLowerCase()}`)){
+    if(e!=="camino"&&share&&share.pid===p.pid) stopShare(); await refresh(); const p2=pedidos.find(x=>x.pid===p.pid);
+    if(e==="camino"&&p2&&p2.entrega==="domicilio"&&!share) return startShare(p2); if(p2) openPedido(p2); else closeSheet(); }
+}
+function openMisPedidos(){ const rows=pedidos.filter(p=>p.soyCliente).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const sh=openSheet(`<div class="shead"><div class="t"><h2>Mis pedidos</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"pedido":"pedidos"} en los últimos 60 días</div></div>${xBtn}</div><div class="list">${rows.map(pedLi).join("")||'<div class="empty">Aún no has hecho pedidos. Búscalos en «Negocios y lugares».</div>'}</div>`);
+  sh.querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>openPedido(pedidos.find(x=>x.pid===b.dataset.pid))); }
+function openPedidosNegocio(lid){ let f="abiertos";
+  const render=()=>{ const all=pedidos.filter(p=>p.soyNegocio&&(!lid||p.lugarId===lid)).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+    const rows=all.filter(p=>f==="todos"||["recibido","preparando","camino"].includes(p.estado));
+    const sh=openSheet(`<div class="shead"><div class="t"><h2>Pedidos recibidos</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"pedido":"pedidos"}</div></div>${xBtn}</div>
+      <div class="filters"><button class="chip" type="button" data-f="abiertos" aria-pressed="${f==="abiertos"}">En curso</button><button class="chip" type="button" data-f="todos" aria-pressed="${f==="todos"}">Todos</button></div>
+      <div class="list">${rows.map(pedLi).join("")||'<div class="empty">No hay pedidos en curso.</div>'}</div>`);
+    sh.querySelectorAll(".chip[data-f]").forEach(b=>b.onclick=()=>{ f=b.dataset.f; render(); });
+    sh.querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>openPedido(pedidos.find(x=>x.pid===b.dataset.pid))); };
+  render(); }
+function openDirectorio(f0){ let f=f0||"todos", q="";
+  const render=()=>{
+    const match=l=>f==="todos"?(l.clase==="negocio"?l.estado==="aprobado"||l.mio:true):f==="comida"?l.clase==="negocio"&&l.estado==="aprobado"&&esComida(l):f==="domicilio"?l.clase==="negocio"&&l.estado==="aprobado"&&l.domicilio:f==="clave"?l.clase==="clave":f==="pend"?l.estado==="pendiente":f==="mios"?l.mio:true;
+    const rows=lugares.filter(match).filter(l=>!q||norm(l.nombre+" "+tipoL(l)[0]+" "+(l.descripcion||"")).includes(norm(q))).sort((a,b)=>(a.clase==="clave")-(b.clase==="clave")||String(a.nombre).localeCompare(String(b.nombre)));
+    const chips=[["todos","Todos"],["comida","Comida y café"],["domicilio","A domicilio"],["clave","Lugares clave"],...(lugares.some(l=>l.mio)?[["mios","Míos"]]:[]),...(isComite()?[["pend","Por aprobar"]]:[])];
+    const sh=openSheet(`<div class="shead"><div class="t"><h2>Negocios y lugares</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"resultado":"resultados"}</div></div>${xBtn}</div>
+      <div class="srow" style="margin-bottom:10px"><input id="dq" type="search" placeholder="Buscar: tacos, café, farmacia…" value="${esc(q)}" autocomplete="off"></div>
+      <div class="filters">${chips.map(([k,t])=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${f===k}">${esc(t)}</button>`).join("")}</div>
+      <div class="list">${rows.map(l=>{ const t=tipoL(l); return `<button class="li" type="button" data-lid="${esc(l.id)}"><span class="ic" style="background:${colL(l)}">${svgI(t[1])}</span><span class="b"><span class="p">${esc(l.nombre)}</span><span class="s" style="display:block">${esc([t[0],l.clase==="negocio"&&l.domicilio?"A domicilio":"",l.horario||l.direccion||""].filter(Boolean).join(" · "))}</span></span>${l.estado==="pendiente"?'<span class="pill" style="background:var(--gold)">Por aprobar</span>':l.estado==="rechazado"?'<span class="pill" style="background:var(--rep)">No aprobado</span>':""}</button>`; }).join("")||`<div class="empty">${f==="todos"&&!q?"Aún no hay negocios registrados. ¡Registra el tuyo!":"No hay nada en este filtro."}</div>`}</div>`);
+    sh.querySelectorAll(".chip[data-f]").forEach(b=>b.onclick=()=>{ f=b.dataset.f; render(); });
+    const dq=$("dq"); dq.oninput=()=>{ q=dq.value.trim(); render(); const n=$("dq"); n.focus(); try{ n.setSelectionRange(n.value.length,n.value.length); }catch(e){} };
+    sh.querySelectorAll(".li[data-lid]").forEach(b=>b.onclick=()=>{ const l=lugares.find(x=>x.id===b.dataset.lid); if(l){ center(l.lat,l.lon,3); openLugar(l); } }); };
+  render(); }
+// Negocio comparte su ubicación mientras entrega
+function startShare(p){
+  if(!navigator.geolocation){ toast("Este celular no puede compartir la ubicación."); return; }
+  stopShare(); share={pid:p.pid,last:0,watch:null};
+  const send=async pos=>{ if(!share) return; const now=Date.now(); if(now-share.last<9000) return; share.last=now;
+    try{ await api("pedidoUbicacion",{pid:share.pid,lat:+pos.coords.latitude.toFixed(6),lon:+pos.coords.longitude.toFixed(6),acc:Math.round(pos.coords.accuracy||30)}); $("liveMsg").textContent=`Compartiendo tu ubicación con ${String(p.nombre).split(" ")[0]} · deja la app abierta`; }
+    catch(e){ if(e.code==="estado"){ stopShare(); toast("El pedido ya no está en camino; se dejó de compartir."); } } };
+  share.watch=navigator.geolocation.watchPosition(send,e=>{ toast(e.code===1?"No diste permiso de ubicación.":"No se pudo obtener tu ubicación."); stopShare(); },{enableHighAccuracy:true,maximumAge:5000});
+  $("liveMsg").textContent="Buscando tu ubicación…"; $("liveBar").hidden=false; toast("Compartiendo tu ubicación en vivo"); openPedido(p);
+}
+function stopShare(){ if(share&&share.watch!=null) try{ navigator.geolocation.clearWatch(share.watch); }catch(e){} share=null; const lb=$("liveBar"); if(lb) lb.hidden=true; }
+$("liveStop").onclick=()=>{ stopShare(); toast("Dejaste de compartir tu ubicación"); };
+// Cliente sigue su pedido en el mapa
+async function startTrack(p){
+  if(cat!=="lugares") setCat("lugares",true); stopTrack(); track={pid:p.pid,loc:null,f:null,timer:null,first:true};
+  const tick=async()=>{ if(!track) return; try{ const r=await api("pedidoSeguir",{pid:track.pid}); if(!track) return;
+      if(r.estado!=="camino"){ toast(r.estado==="entregado"?"¡Tu pedido ya fue entregado!":`Tu pedido está: ${PEST[r.estado][0].toLowerCase()}`); const pid=track.pid; stopTrack(); await refresh(); const p2=pedidos.find(x=>x.pid===pid); if(p2) openPedido(p2); return; }
+      track.loc=r.loc; track.f=r.loc&&r.loc.f; if(r.loc&&track.first){ track.first=false; center(r.loc.lat,r.loc.lon,3,0.22); } else drawPins(); trackInfo(); }catch(e){} };
+  track.timer=setInterval(tick,8000); openPedido(p); tick();
+}
+function trackInfo(){ const e=$("trkInfo"); if(!e||!track) return; e.textContent = track.loc ? `Ubicación actualizada ${hace(track.f)}. El punto azul es tu pedido; se actualiza solo.` : "Esperando a que el negocio comparta su ubicación…"; const b=$("pTrack"); if(b) b.hidden=true; }
+function stopTrack(){ if(track&&track.timer) clearInterval(track.timer); track=null; }
+
 // ---------- Excel ----------
 function loadXLSX(){ return new Promise((res,rej)=>{ if(window.XLSX) return res(window.XLSX); const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload=()=>res(window.XLSX); sc.onerror=rej; document.head.appendChild(sc); }); }
 const sheetItems = rows=>rows.map(p=>({"#":p.num,[CATS[p.categoria].code]:codigo(p),"Cómo está":p.falla,"Seguimiento":labelOf(p),"Calle":p.ubicacion||"","Entre calles":p.entre||"","Cuadrilla":p.cuadrilla||"","Reportes abiertos":openReps(p.id).length,"Notas":p.notas||"","Actualizado":p.actualizado?fechaHora(p.actualizado):"","Latitud":p.lat,"Longitud":p.lon,"Google Maps":gmaps(p.lat,p.lon)}));
@@ -856,7 +1188,8 @@ async function downloadXlsx(sheets,name){
   const wb=X.utils.book_new(); for(const [n,rows] of Object.entries(sheets)){ const ws=X.utils.json_to_sheet(rows.length?rows:[{"Sin datos":""}]); const keys=Object.keys(rows[0]||{"Sin datos":""}); ws["!cols"]=keys.map(k=>({wch:Math.min(40,Math.max(8,k.length+2,...rows.slice(0,200).map(r=>String(r[k]??"").length)))})); X.utils.book_append_sheet(wb,ws,n.slice(0,31)); }
   X.writeFile(wb,`${name}.xlsx`); toast("Excel descargado");
 }
-function downloadAll(){ const sh={}; ORDER.forEach(k=>{ const c=CATS[k]; if(c.inv) sh[c.n]=sheetItems(catItems(k)); }); sh["Reportes"]=sheetReps([...reps].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))); downloadXlsx(sh,`Trinidad de las Huertas ${fecha(nowISO()).replace(/\//g,"-")}`); }
+function downloadAll(){ const sh={}; ORDER.forEach(k=>{ const c=CATS[k]; if(c.inv) sh[c.n]=sheetItems(catItems(k)); }); sh["Reportes"]=sheetReps([...reps].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha))));
+  sh["Negocios y lugares"]=lugares.map(l=>({"Nombre":l.nombre,"Tipo":l.clase==="clave"?"Lugar clave":"Negocio","Giro":tipoL(l)[0],"Estado":l.clase==="clave"?"":l.estado,"Horario":l.horario||"","WhatsApp":l.whatsapp||"","Teléfono":l.telefono||"","A domicilio":l.clase==="negocio"?(l.domicilio?"Sí":"No"):"","Productos en menú":(l.menu||[]).length,"Dirección":l.direccion||"","Registró":l.dueno||"","Google Maps":l.maps||gmaps(l.lat,l.lon)})); downloadXlsx(sh,`Trinidad de las Huertas ${fecha(nowISO()).replace(/\//g,"-")}`); }
 
 // ---------- Importar la página anterior ----------
 function importar(){
@@ -880,7 +1213,8 @@ $("btnMe").onclick=()=>{ if(watchId!==null){ navigator.geolocation.clearWatch(wa
 let refreshing=null;
 async function refresh(){
   if(!S.token) return; if(refreshing) return refreshing;
-  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat));
+  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat)); lugares=(j.lugares||[]).filter(l=>!isNaN(l.lat)); pedidos=j.pedidos||[];
+      if(share){ const p=pedidos.find(x=>x.pid===share.pid); if(!p||p.estado!=="camino") stopShare(); }
       if(j.user&&(j.user.rol!==S.user.rol||j.user.estado!==S.user.estado)){ setSession(S.token,j.user); if(cat) fabs(); }
       loaded=true; $("dbBanner").hidden=true;
       if(!cat) renderHome(); else { summary(); if(!(gest&&gest.type==="pin"&&gest.moved)) drawPins(); } renderCats(); $("btnMe2").textContent=initials(S.user.nombre);
@@ -898,7 +1232,7 @@ function authMsg(t){ const e=$("inErr"); e.textContent=t; e.hidden=false; }
 function setTab(up){ $("tabIn").setAttribute("aria-selected",String(!up)); $("tabUp").setAttribute("aria-selected",String(up)); $("fIn").hidden=up; $("fUp").hidden=!up; $("inErr").hidden=true; $("upErr").hidden=true; }
 $("tabIn").onclick=()=>setTab(false); $("tabUp").onclick=()=>setTab(true);
 document.querySelectorAll(".eye").forEach(b=>b.onclick=()=>{ const i=b.previousElementSibling; i.type=i.type==="password"?"text":"password"; b.textContent=i.type==="password"?"Ver":"Ocultar"; });
-function enterApp(){ $("auth").hidden=true; $("app").hidden=false; $("btnMe2").textContent=initials(S.user.nombre); const h=(location.hash||"").slice(1); setCat(CATS[h]||h==="todo"?h:""); refresh(); }
+function enterApp(){ $("auth").hidden=true; $("app").hidden=false; $("btnMe2").textContent=initials(S.user.nombre); const h=(location.hash||"").slice(1); setCat(CATS[h]||h==="todo"||h==="lugares"?h:""); refresh(); }
 $("fIn").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelector('[type="submit"]'); b.disabled=true; $("inErr").hidden=true;
   try{ const r=await api("login",{usuario:$("inU").value.trim(),password:$("inP").value}); setSession(r.token,r.user); $("inP").value=""; enterApp(); }
   catch(e){ authMsg(errTxt(e)); } finally{ b.disabled=false; } };
