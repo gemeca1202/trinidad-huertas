@@ -11,7 +11,7 @@ const PROPS = PropertiesService.getScriptProperties();
 const H_USUARIOS = ['usuario', 'nombre', 'calle', 'casa', 'telefono', 'rol', 'estado', 'salt', 'hash', 'creado', 'ultimoAcceso'];
 const H_ITEMS = ['id', 'categoria', 'num', 'codigo', 'falla', 'estado', 'ubicacion', 'entre', 'lat', 'lon', 'foto', 'actualizado', 'por', 'data'];
 const H_REPORTES = ['rid', 'fecha', 'categoria', 'itemId', 'itemCodigo', 'tipo', 'comentario', 'usuario', 'nombre', 'casa', 'telefono',
-  'lat', 'lon', 'foto', 'estado', 'fechaEstado', 'por', 'notas', 'cuadrilla', 'apoyos', 'historial'];
+  'lat', 'lon', 'foto', 'estado', 'fechaEstado', 'por', 'notas', 'cuadrilla', 'apoyos', 'historial', 'acuse', 'folioDep'];
 const H_BITACORA = ['fecha', 'usuario', 'nombre', 'accion', 'detalle'];
 const H_LUGARES = ['id', 'clase', 'nombre', 'giro', 'estado', 'dueno', 'lat', 'lon', 'foto', 'actualizado', 'por', 'data'];
 const H_PEDIDOS = ['pid', 'fecha', 'lugarId', 'lugarNombre', 'cliente', 'nombre', 'casa', 'telefono', 'items', 'total', 'entrega', 'nota',
@@ -43,6 +43,8 @@ function hoja_(nombre, headers) {
     sh.setFrozenRows(1);
     const def = s.getSheetByName('Hoja 1') || s.getSheetByName('Sheet1');
     if (def && s.getSheets().length > 1 && def.getLastRow() === 0) s.deleteSheet(def);
+  } else if (sh.getLastColumn() < headers.length) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#7a1f2b').setFontColor('#ffffff');
   }
   return sh;
 }
@@ -144,7 +146,7 @@ function reporteDe_(r) {
     itemCodigo: String(r.itemCodigo || ''), tipo: r.tipo, comentario: r.comentario, usuario: String(r.usuario), nombre: r.nombre, casa: String(r.casa),
     telefono: String(r.telefono || ''), lat: Number(r.lat), lon: Number(r.lon), foto: String(r.foto || ''), estado: r.estado || 'nuevo',
     fechaEstado: r.fechaEstado instanceof Date ? r.fechaEstado.toISOString() : String(r.fechaEstado || ''), por: String(r.por || ''), notas: String(r.notas || ''),
-    cuadrilla: String(r.cuadrilla || ''), apoyos: apoyos, historial: hist, _row: r._row
+    cuadrilla: String(r.cuadrilla || ''), apoyos: apoyos, historial: hist, acuse: String(r.acuse || ''), folioDep: String(r.folioDep || ''), _row: r._row
   };
 }
 function datos_(u) {
@@ -163,7 +165,7 @@ function datos_(u) {
     o.mio = mio; o.apoyo = o.apoyos.indexOf(u.usuario) >= 0; o.nApoyos = o.apoyos.length;
     if (!staff) {
       delete o.apoyos; delete o.telefono; delete o.notas; delete o.por;
-      if (!mio) { delete o.usuario; delete o.nombre; delete o.casa; o.historial = []; }
+      if (!mio) { delete o.usuario; delete o.nombre; delete o.casa; delete o.acuse; o.historial = []; }
     }
     out.push(o);
   });
@@ -313,6 +315,23 @@ function atender_(req) {
     sh.getRange(r._row, H_REPORTES.indexOf('historial') + 1).setValue(JSON.stringify(r.historial.slice(-60)));
     bitacora_(u, 'Canceló su reporte', r.rid);
     return { ok: true };
+  }
+
+  if (a === 'reporteAcuse') { // Quien reportó (o el comité) sube el acuse de la dependencia y su folio.
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hReportes_(); const r = filas_(sh, H_REPORTES).map(reporteDe_).find(x => x.rid === String(req.rid));
+      if (!r) return { ok: false, error: 'no_existe' };
+      if (!staff && normUsuario_(r.usuario) !== normUsuario_(u.usuario)) return { ok: false, error: 'permiso' };
+      let acuse = r.acuse;
+      if (req.data) acuse = guardarFoto_(req.data, 'acuse_' + r.rid + '_' + Date.now());
+      const folio = req.folioDep !== undefined ? limpiar_(req.folioDep, 60) : r.folioDep;
+      r.historial.push({ f: ahora_(), t: req.data ? 'Se entregó el oficio a la dependencia (acuse)' + (folio ? ' · folio ' + folio : '') : 'Folio de la dependencia: ' + (folio || '—'), u: u.nombre });
+      sh.getRange(r._row, H_REPORTES.indexOf('acuse') + 1, 1, 2).setValues([[acuse, folio]]);
+      sh.getRange(r._row, H_REPORTES.indexOf('historial') + 1).setValue(JSON.stringify(r.historial.slice(-60)));
+      bitacora_(u, req.data ? 'Subió acuse de oficio' : 'Anotó folio de dependencia', `${r.categoria} · ${r.rid}${folio ? ' · ' + folio : ''}`);
+      return { ok: true, acuse: acuse, folioDep: folio };
+    } finally { lock.releaseLock(); }
   }
 
   // ---- Negocios y lugares ----

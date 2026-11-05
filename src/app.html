@@ -819,7 +819,7 @@ function numerosDe(k){ return getNumeros().filter(n=>Array.isArray(n.secciones)&
 function numCard(n,i){ const mapa=n.maps&&/^https?:\/\//.test(n.maps)?n.maps:(n.lat?gmaps(n.lat,n.lon):(n.direccion?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(n.direccion+", Oaxaca")}`:""));
   return `<div class="num"><div class="nh"><span class="ic" style="background:#b3261e">${svgI("telefono")}</span><span class="b"><span class="p">${esc(n.dependencia)}</span>${n.oficina?`<span class="s">${esc(n.oficina)}</span>`:""}</span></div>
     ${(n.secciones||[]).length?`<div class="tags">${n.secciones.filter(k=>CATS[k]).map(k=>`<span class="pill" style="background:${CATS[k].col}">${esc(CATS[k].n)}</span>`).join("")}</div>`:""}
-    <dl class="facts" style="margin:6px 0 8px">${n.telefono?`<div><dt>Teléfono</dt><dd>${esc(n.telefono)}</dd></div>`:""}${n.horario?`<div><dt>Horario</dt><dd>${esc(n.horario)}</dd></div>`:""}${n.direccion?`<div class="wide"><dt>Ubicación</dt><dd>${esc(n.direccion)}</dd></div>`:""}${n.notas?`<div class="wide"><dt>Notas</dt><dd>${esc(n.notas)}</dd></div>`:""}${(n.extra||[]).filter(x=>x.k&&x.v).map(x=>`<div class="wide"><dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd></div>`).join("")}</dl>
+    <dl class="facts" style="margin:6px 0 8px">${n.dirigido?`<div class="wide"><dt>Titular</dt><dd>${esc(n.dirigido)}${n.cargo?` · ${esc(n.cargo)}`:""}</dd></div>`:""}${n.telefono?`<div><dt>Teléfono</dt><dd>${esc(n.telefono)}</dd></div>`:""}${n.horario?`<div><dt>Horario</dt><dd>${esc(n.horario)}</dd></div>`:""}${n.direccion?`<div class="wide"><dt>Ubicación</dt><dd>${esc(n.direccion)}</dd></div>`:""}${n.notas?`<div class="wide"><dt>Notas</dt><dd>${esc(n.notas)}</dd></div>`:""}${(n.extra||[]).filter(x=>x.k&&x.v).map(x=>`<div class="wide"><dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd></div>`).join("")}</dl>
     <div class="biz-actions" style="margin:0">${n.telefono?`<a class="btn primary" href="${telHref(n.telefono)}">Llamar</a>`:""}${n.whatsapp?`<a class="btn wa" href="${waLink(n.whatsapp,"Hola, quiero hacer un reporte del Fraccionamiento Trinidad de las Huertas.")}" target="_blank" rel="noopener">WhatsApp</a>`:""}${mapa?`<a class="btn" href="${mapa}" target="_blank" rel="noopener">Ver ubicación</a>`:""}${isComite()&&i>=0?`<button type="button" class="btn" data-ne="${i}">Editar</button>`:""}</div></div>`; }
 function renderNumeros(){
   const ns=getNumeros();
@@ -839,6 +839,8 @@ function editNumero(i){
   const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${i>=0?"Editar número":"Nuevo número oficial"}</h3>
     <label>Dependencia<input id="nd" value="${esc(n.dependencia)}" maxlength="60" required placeholder="Ej. SOAPA, CFE, Municipio de Oaxaca"></label>
     <label>Oficina o área<input id="no" value="${esc(n.oficina)}" maxlength="80" placeholder="Ej. Reporte de fugas"></label>
+    <div class="row2"><label>Dirigido a (para oficios)<input id="ndi" value="${esc(n.dirigido)}" maxlength="80" placeholder="Ej. Ing. Francisco Martínez Gopar"></label><label>Cargo<input id="nca" value="${esc(n.cargo)}" maxlength="100" placeholder="Ej. Jefe del Departamento de Luminarias"></label></div>
+    <label>Con atención a (opcional)<input id="nat" value="${esc(n.atencion)}" maxlength="160" placeholder="Ej. Lic. Víctor Sergio Romero López, Secretario de Servicios Vecinales"></label>
     <div class="row2"><label>Teléfono<input id="nt" type="tel" value="${esc(n.telefono)}" maxlength="30"></label><label>WhatsApp<input id="nw" type="tel" value="${esc(n.whatsapp)}" maxlength="20" placeholder="Opcional"></label></div>
     <label>Horario<input id="nh" value="${esc(n.horario)}" maxlength="80" placeholder="Ej. Lun a vie 9:00 a 15:00"></label>
     <label>Ubicación (dirección)<input id="nu" value="${esc(n.direccion)}" maxlength="160" placeholder="Calle, número, colonia"></label>
@@ -858,7 +860,7 @@ function editNumero(i){
   const save=async lst=>{ try{ await api("contenidoGuardar",{clave:"numeros",data:lst}); contenido.numeros=lst; m.remove(); toast("Números guardados"); renderPage(); }catch(e){ const er=m.querySelector("#nErr"); er.textContent=errTxt(e); er.hidden=false; } };
   const del=m.querySelector("#nDel"); if(del) del.onclick=()=>{ list.splice(i,1); save(list); };
   m.querySelector("form").onsubmit=ev=>{ ev.preventDefault(); read(); const g=id=>m.querySelector(id).value.trim();
-    Object.assign(n,{dependencia:g("#nd"),oficina:g("#no"),telefono:g("#nt"),whatsapp:g("#nw"),horario:g("#nh"),direccion:g("#nu"),maps:g("#nm"),notas:g("#nn"),secciones:[...m.querySelectorAll(".secs input:checked")].map(x=>x.value),extra:extra.filter(x=>x.k&&x.v)});
+    Object.assign(n,{dependencia:g("#nd"),oficina:g("#no"),dirigido:g("#ndi"),cargo:g("#nca"),atencion:g("#nat"),telefono:g("#nt"),whatsapp:g("#nw"),horario:g("#nh"),direccion:g("#nu"),maps:g("#nm"),notas:g("#nn"),secciones:[...m.querySelectorAll(".secs input:checked")].map(x=>x.value),extra:extra.filter(x=>x.k&&x.v)});
     const r=parseLL(n.maps,20000); if(r&&!r.far){ n.lat=r.lat; n.lon=r.lon; } else { delete n.lat; delete n.lon; }
     if(i>=0) list[i]=n; else list.push(n); save(list); };
 }
@@ -909,14 +911,14 @@ function openItem(p,hlRid){
         <div class="wide"><dt>Calle</dt><dd>${esc(p.ubicacion||"—")}</dd></div>${p.entre?`<div class="wide"><dt>Entre calles</dt><dd>${esc(p.entre)}</dd></div>`:""}</dl>`+
       repBtn+itemRepsH(p,hlRid)+`<div class="actions"><a class="btn" href="${gmaps(p.lat,p.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a></div>`);
     $("btnRepItem").onclick=()=>reportModal({cat:p.categoria,item:p,lat:p.lat,lon:p.lon});
-    wireRepLi(sh); return;
+    sh.querySelectorAll(".li[data-rid]").forEach(b=>b.onclick=()=>{ const r=reps.find(x=>x.rid===b.dataset.rid); if(r) openRep(r); }); return;
   }
   const ESTADOS={pendiente:"Pendiente",atendido:p.tipo==="poda"?"Podado":c.hecho};
   const segH=p.tipo!=="ok"?`<div class="seglbl">Seguimiento de la reparación</div><div class="seg" role="group" aria-label="Seguimiento">${Object.entries(ESTADOS).map(([k,v])=>`<button type="button" data-e="${k}" aria-pressed="${(p.estado||"pendiente")===k}">${v}</button>`).join("")}</div>`:"";
   const sh=openSheet(itemHead(p,false)+fotoH(p.foto,`Foto del ${c.item} ${codigo(p)}`,"fotoIn",`Agregar foto del ${c.item}`)+segH+itemRepsH(p,hlRid)+repBtn+itemForm(p,false)+
     `<div class="meta">#${p.num??"—"}${p.actualizado?` · Actualizado ${esc(fechaHora(p.actualizado))}`:""}${isComite()?" · Para moverlo, arrastra el punto con el dedo.":""}</div>`+histH(p.historial));
   $("btnRepItem").onclick=()=>reportModal({cat:p.categoria,item:p,lat:p.lat,lon:p.lon});
-  wireRepLi(sh); wireItemForm(p,false);
+  wireRepLi(sh); sh.querySelectorAll(".li[data-rid]").forEach(b=>b.onclick=()=>{ const r=reps.find(x=>x.rid===b.dataset.rid); if(r) openRep(r); }); wireItemForm(p,false);
   wireFotoUpload("fotoIn",async b64=>{ const r=await api("itemFoto",{id:p.id,data:b64}); p.foto=r.foto; await saveItem(p,{historial:histPush(p,p.foto?"Se cambió la foto":"Se agregó foto")},null,true); openItem(p); });
   sh.querySelectorAll(".seg button").forEach(b=>b.onclick=async()=>{ const e=b.dataset.e; if((p.estado||"pendiente")===e) return;
     const now=nowISO(); const upd={estado:e,historial:histPush(p,`Seguimiento: ${ESTADOS[e]}`),fechaReparacion:e==="atendido"?now:null};
@@ -1019,7 +1021,7 @@ function openRep(r){
     fotoH(r.foto,`Foto del reporte`,isStaff()||r.mio?"fotoRep":null,"Agregar foto")+whoH(r)+
     (r.comentario?`<dl class="facts"><div class="wide"><dt>Comentario</dt><dd>${esc(r.comentario)}</dd></div></dl>`:"")+
     (r.estado!=="nuevo"&&r.fechaEstado?`<div class="repdate" style="margin:-4px 0 12px">${est[0]} desde ${esc(fecha(r.fechaEstado))}</div>`:"")+
-    apoyo+seg+staffH+
+    apoyo+acuseH(r)+seg+staffH+
     `<div class="actions" style="margin-top:10px">${it?`<button type="button" class="btn" id="btnGoItem">Ver el ${c.item}</button>`:""}<a class="btn" href="${gmaps(r.lat,r.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
       ${r.mio&&r.estado==="nuevo"?`<button type="button" class="btn danger" id="btnCancel">Cancelar mi reporte</button>`:""}</div>
     <div class="meta">Folio ${esc(r.rid)}</div>`+((isStaff()||r.mio)?histH(r.historial):""));
@@ -1027,6 +1029,7 @@ function openRep(r){
   const gi=$("btnGoItem"); if(gi) gi.onclick=()=>{ if(cat!==it.categoria) setCat(it.categoria,true); center(it.lat,it.lon,3); openItem(it,r.rid); };
   const cn=$("btnCancel"); if(cn) cn.onclick=async()=>{ if(await guard(()=>api("cancelarReporte",{rid:r.rid}),"Reporte cancelado")){ r.estado="descartado"; await refresh(); closeSheet(); } };
   wireFotoUpload("fotoRep",async b64=>{ const res=await api("reporteFoto",{rid:r.rid,data:b64}); r.foto=res.foto; openRep(r); });
+  wireAcuse(r);
   sh.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>setRepEstado(r,b.dataset.e));
   const rf=$("rform"); if(rf) rf.onsubmit=async ev=>{ ev.preventDefault(); const fd=new FormData(rf); const notas=String(fd.get("notas")||"").trim(), cuadrilla=String(fd.get("cuadrilla")||"");
     if(await guard(()=>api("reporteNotas",{rid:r.rid,notas,cuadrilla}),"Notas guardadas")){ r.notas=notas; r.cuadrilla=cuadrilla; } };
@@ -1076,7 +1079,9 @@ function reportModal(o){
   m.querySelector("#rpForm").onsubmit=async ev=>{ ev.preventDefault(); const b=m.querySelector("#rpOk"); b.disabled=true; b.textContent="Enviando…"; const er=m.querySelector("#rpErr"); er.hidden=true;
     try{ const res=await api("reportar",{categoria:o.cat,itemId:o.item?o.item.id:"",itemCodigo:o.item?codigo(o.item):(c.inv?"S/N":""),tipo:m.querySelector("#rpTipo").value,comentario:m.querySelector("#rpCom").value.trim(),lat:+(+o.lat).toFixed(7),lon:+(+o.lon).toFixed(7),foto:foto||""});
       m.remove(); pendingNew=null; await refresh(); toast("¡Gracias! Tu reporte llegó al comité.");
-      const r=reps.find(x=>x.rid===res.rid); if(r&&!(c.inv&&o.item)){ selected="r:"+r.rid; drawPins(); openRep(r); } else if(o.item){ const p=items.find(x=>x.id===o.item.id); if(p) openItem(p,res.rid); }
+      const r=reps.find(x=>x.rid===res.rid);
+      if(r&&OFICIO[o.cat]){ selected=(o.item?"i:"+o.item.id:"r:"+r.rid); drawPins(); openRep(r); oficioModal(r,true); }
+      else if(r&&!(c.inv&&o.item)){ selected="r:"+r.rid; drawPins(); openRep(r); } else if(o.item){ const p=items.find(x=>x.id===o.item.id); if(p) openItem(p,res.rid); }
     }catch(e){ er.textContent=errTxt(e); er.hidden=false; b.disabled=false; b.textContent="Enviar reporte"; } };
   setTimeout(()=>{ try{ m.querySelector("#rpTipo").focus(); }catch(e){} },50);
 }
@@ -1100,12 +1105,13 @@ function openList(){
       ${c.inv&&catItems(cat).length?meterH(cat):""}
       <div class="srow" style="margin-bottom:10px"><input id="lq" type="search" placeholder="${c.inv?`Buscar por número o calle`:"Buscar por tipo, comentario o vecino"}" value="${esc(q)}" autocomplete="off"></div>
       <div class="filters">${chips.map(([k,t])=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${f===k}">${esc(t)}</button>`).join("")}</div>
-      ${isStaff()?`<div class="dl"><button class="btn" type="button" id="btnDl"${rows.length?"":" disabled"}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar en Excel</button></div>`:""}
+      ${isStaff()?`<div class="dl"><button class="btn" type="button" id="btnDl"${rows.length?"":" disabled"}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar en Excel</button>${isComite()&&OFICIO[cat]?`<button class="btn" type="button" id="btnOfGen">${svgI("archivo",'width="17" height="17"')}Oficio general</button>`:""}</div>`:""}
       <div class="list">${c.inv?rows.map(p=>`<button class="li" type="button" data-id="${esc(p.id)}"><span class="n" style="background:${colorOf(p)}">${p.num??"•"}</span><span class="b"><span class="p">${esc(c.Item)} ${esc(codigo(p))}</span><span class="s" style="display:block">${esc(p.falla)} · ${esc(p.ubicacion)}${p.cuadrilla&&!isGreen(p)?` · C${esc(p.cuadrilla)}`:""}</span></span>${openReps(p.id).length?`<span class="pill" style="background:var(--gold)">${openReps(p.id).length} rep.</span>`:p.estado==="atendido"&&p.tipo!=="ok"?`<span class="st">${esc(labelOf(p))}</span>`:""}</button>`).join(""):rows.map(repLi).join("")}${rows.length?"":'<div class="empty">No hay nada en este filtro.</div>'}</div>`);
     sh.querySelectorAll(".filters .chip").forEach(b=>b.onclick=()=>{ f=b.dataset.f; render(); });
     const lq=$("lq"); lq.oninput=()=>{ q=lq.value.trim(); const pos=lq.selectionStart; render(); const n=$("lq"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
     sh.querySelectorAll(".li[data-id]").forEach(b=>b.onclick=()=>{ const p=items.find(x=>x.id===b.dataset.id); if(p){ center(p.lat,p.lon,3); openItem(p); } });
     wireRepLi(sh); const om=$("openMeter"); if(om) om.onclick=null;
+    const og=$("btnOfGen"); if(og) og.onclick=()=>oficioGeneralModal(cat);
     const dl=$("btnDl"); if(dl) dl.onclick=()=>downloadXlsx(c.inv?{[c.n]:sheetItems(rows)}:{[c.n]:sheetReps(rows)},`${c.n} ${fecha(nowISO()).replace(/\//g,"-")}`);
   };
   render();
@@ -1421,6 +1427,142 @@ async function startTrack(p){
 function trackInfo(){ const e=$("trkInfo"); if(!e||!track) return; e.textContent = track.loc ? `Ubicación actualizada ${hace(track.f)}. El punto azul es tu pedido; se actualiza solo.` : "Esperando a que el negocio comparta su ubicación…"; const b=$("pTrack"); if(b) b.hidden=true; }
 function stopTrack(){ if(track&&track.timer) clearInterval(track.timer); track=null; }
 
+// ---------- Oficios en PDF ----------
+const OFICIO = {
+  luminarias:{asunto:"Solicitud de reparación de luminaria", pide:"la reparación de la luminaria del alumbrado público", gen:"la reparación de las luminarias del alumbrado público", unidad:["poste","postes"]},
+  drenaje:{asunto:"Solicitud de desazolve y atención de registro de drenaje", pide:"el desazolve y la atención del registro de drenaje", gen:"el desazolve y la atención de los registros de drenaje", unidad:["registro","registros"]},
+  poda:{asunto:"Solicitud de poda de árbol", pide:"la poda o atención del árbol", gen:"la poda o atención de los árboles", unidad:["punto","puntos"]}
+};
+const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const fechaLarga = d=>`${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+function loadScript(src,test){ return new Promise((res,rej)=>{ if(test()) return res(); const sc=document.createElement("script"); sc.src=src; sc.onload=()=>test()?res():rej(new Error("lib")); sc.onerror=rej; document.head.appendChild(sc); }); }
+async function loadPDF(){
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",()=>window.jspdf&&window.jspdf.jsPDF);
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js",()=>window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.autoTable);
+  return window.jspdf.jsPDF;
+}
+let sealData=null;
+async function sealURL(){ if(sealData) return sealData; const b=await (await fetch("seal.jpg")).blob(); sealData=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b); }); return sealData; }
+const GUINDA=[122,31,43], ORO=[200,144,42], TINTA=[42,29,31], GRIS=[113,95,87];
+async function pdfBase(){
+  const jsPDF=await loadPDF(); const doc=new jsPDF({unit:"mm",format:"letter"}); const W=216, M=20;
+  try{ doc.addImage(await sealURL(),"JPEG",M,12,22,22); }catch(e){}
+  doc.setTextColor(...GUINDA); doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.text("COMITÉ VECINAL",M+27,19);
+  doc.setFontSize(11); doc.text("FRACCIONAMIENTO TRINIDAD DE LAS HUERTAS",M+27,25);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...GRIS); doc.text(`${getComite().gestion||""} · Oaxaca de Juárez, Oaxaca`,M+27,30.5);
+  doc.setDrawColor(...ORO); doc.setLineWidth(0.9); doc.line(M,37,W-M,37); doc.setDrawColor(...GUINDA); doc.setLineWidth(0.3); doc.line(M,38.3,W-M,38.3);
+  doc.setTextColor(...TINTA); return {doc,W,M,y:47};
+}
+function pdfText(ctx,txt,opt={}){ const {doc,W,M}=ctx; const size=opt.size||10.5; doc.setFont("helvetica",opt.bold?"bold":"normal"); doc.setFontSize(size);
+  const lines=doc.splitTextToSize(txt,(opt.width||(W-2*M))); const lh=size*0.42+(opt.lh!==undefined?opt.lh:1.2);
+  lines.forEach(l=>{ if(ctx.y>258){ doc.addPage(); ctx.y=22; } doc.text(l,opt.right?W-M:(opt.x||M),ctx.y,opt.right?{align:"right"}:undefined); ctx.y+=lh; }); ctx.y+=(opt.after||0); }
+function pdfCabecera(ctx,asunto,folio,dep){
+  const d=new Date();
+  pdfText(ctx,`Oaxaca de Juárez, Oax., a ${fechaLarga(d)}`,{right:true});
+  pdfText(ctx,`Asunto: ${asunto}`,{right:true,bold:true}); if(folio) pdfText(ctx,`Folio de la app: ${folio}`,{right:true,size:9}); ctx.y+=2.5;
+  if(dep&&dep.dirigido){ pdfText(ctx,dep.dirigido.toUpperCase(),{bold:true,lh:0.9}); if(dep.cargo) pdfText(ctx,dep.cargo,{lh:0.9}); pdfText(ctx,[dep.dependencia,dep.oficina].filter(Boolean).join(" · "),{lh:0.9}); }
+  else if(dep){ pdfText(ctx,[dep.dependencia,dep.oficina].filter(Boolean).join(" · ").toUpperCase(),{bold:true,lh:0.9}); }
+  else pdfText(ctx,"A QUIEN CORRESPONDA",{bold:true,lh:0.9});
+  pdfText(ctx,"P R E S E N T E",{bold:true});
+  if(dep&&dep.atencion) pdfText(ctx,`At'n: ${dep.atencion}`,{right:true,size:9.5,after:1});
+  ctx.y+=1.5;
+}
+function pdfDatos(ctx,rows){ ctx.doc.autoTable({startY:ctx.y,margin:{left:ctx.M,right:ctx.M},theme:"grid",body:rows,styles:{font:"helvetica",fontSize:9.2,cellPadding:1.5,textColor:TINTA,lineColor:[220,203,176]},columnStyles:{0:{fontStyle:"bold",cellWidth:46,fillColor:[250,246,239]}}}); ctx.y=ctx.doc.lastAutoTable.finalY+7; }
+function pdfRecibido(ctx,reserve){ const {doc,W,M}=ctx; reserve=reserve||50; let y=ctx.y+3; if(y+reserve>263){ doc.addPage(); y=30; } else y=Math.max(y,263-reserve);
+  doc.setDrawColor(...GRIS); doc.setLineDashPattern([1.5,1.2],0); doc.setLineWidth(0.3); doc.rect(W-M-62,y,62,29); doc.setLineDashPattern([],0);
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...GRIS); doc.text("Sello y fecha de recibido",W-M-31,y+4.5,{align:"center"}); doc.setTextColor(...TINTA); return y; }
+function pdfPie(ctx,folio){ const {doc,W}=ctx; const n=doc.getNumberOfPages(); for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(...GRIS);
+  doc.text(`Documento generado en la app del Comité Vecinal Trinidad de las Huertas${folio?` · Folio ${folio}`:""} · Página ${i} de ${n}`,W/2,272,{align:"center"}); } }
+function ubicacionDe(r){ const it=r.itemId?items.find(p=>p.id===r.itemId):null; return {it, calle:it?(it.ubicacion||""):"", entre:it?(it.entre||""):""}; }
+async function oficioVecino(r,dep){
+  const c=CATS[r.categoria], of=OFICIO[r.categoria], u=S.user; const {it,calle,entre}=ubicacionDe(r);
+  const ctx=await pdfBase(); pdfCabecera(ctx,of.asunto,r.rid,dep);
+  pdfText(ctx,`Por medio del presente, y con fundamento en el artículo 8° de la Constitución Política de los Estados Unidos Mexicanos, me permito solicitar de la manera más atenta su valioso apoyo para ${of.pide} que se describe a continuación, ubicada en el Fraccionamiento Trinidad de las Huertas, Oaxaca de Juárez, Oaxaca.`,{after:2});
+  const rows=[["Fecha del reporte",fechaHora(r.fecha)],["Qué sucede",r.tipo]];
+  if(c.inv) rows.push([c.code,it?codigo(it):(r.itemCodigo||"Sin número")]);
+  if(calle) rows.push(["Calle",calle]); if(entre) rows.push(["Entre calles",entre]);
+  rows.push(["Ubicación (Google Maps)",gmaps(r.lat,r.lon)]);
+  if(r.comentario) rows.push(["Comentarios",r.comentario]);
+  pdfDatos(ctx,rows);
+  pdfText(ctx,`Este reporte está registrado en la aplicación del Comité Vecinal con el folio ${r.rid}; el Comité tiene conocimiento y le dará seguimiento. Agradeceré que la respuesta o el número de atención se me hagan llegar al domicilio o teléfono que señalo abajo.`,{after:1});
+  pdfText(ctx,"Sin otro particular, agradezco de antemano su atención y quedo en espera de su respuesta.",{after:2});
+  const yRec=pdfRecibido(ctx,36); const {doc,M}=ctx;
+  let y=yRec+2; doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.text("A T E N T A M E N T E",M+38,y,{align:"center"});
+  y+=15; doc.setDrawColor(...TINTA); doc.setLineWidth(0.3); doc.line(M,y,M+76,y); doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.text(u.nombre,M+38,y+4.5,{align:"center"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text(`${u.calle} ${u.casa}, Fracc. Trinidad de las Huertas`,M+38,y+8.6,{align:"center"}); if(u.telefono) doc.text(`Tel. ${u.telefono}`,M+38,y+12.6,{align:"center"});
+  doc.setFontSize(8.5); doc.setTextColor(...GRIS); doc.text("c.c.p. Comité Vecinal del Fraccionamiento Trinidad de las Huertas. Para su conocimiento y seguimiento.",M,y+20.5);
+  pdfPie(ctx,r.rid); return ctx.doc;
+}
+async function oficioGeneral(k,lista,dep){
+  const c=CATS[k], of=OFICIO[k]; const com=getComite(); const ints=(com.integrantes||[]).filter(p=>p.nombre);
+  const ctx=await pdfBase(); pdfCabecera(ctx,of.asunto.replace(/de (luminaria|árbol)$/,m=>m==="de luminaria"?"de luminarias":"de árboles").replace("registro de drenaje","registros de drenaje"),"",dep);
+  pdfText(ctx,`Por medio del presente, y con fundamento en el artículo 8° de la Constitución Política de los Estados Unidos Mexicanos, los integrantes del Comité Vecinal del Fraccionamiento Trinidad de las Huertas, ${com.gestion||""}, nos permitimos solicitar de la manera más atenta su valioso apoyo para ${of.gen} que se enlistan a continuación (${lista.length} ${lista.length===1?of.unidad[0]:of.unidad[1]}), reportados por los vecinos del fraccionamiento.`,{after:2});
+  const head = c.inv ? [["#",c.Item,"Qué sucede","Calle","Entre calles","Reportes"]] : [["#","Qué sucede","Ubicación","Reportó","Fecha"]];
+  const body = lista.map((x,i)=> c.inv ? [String(x.num??i+1),codigo(x),x.falla||"",x.ubicacion||"",x.entre||"",String(openReps(x.id).length||"")] : [String(i+1),x.tipo+(x.comentario?` · ${x.comentario}`:""),`${(+x.lat).toFixed(5)}, ${(+x.lon).toFixed(5)}`,x.nombre||"",fecha(x.fecha)]);
+  ctx.doc.autoTable({startY:ctx.y,margin:{left:ctx.M,right:ctx.M},head,body,theme:"grid",styles:{font:"helvetica",fontSize:8.8,cellPadding:1.6,textColor:TINTA,lineColor:[220,203,176]},headStyles:{fillColor:GUINDA,textColor:[255,255,255],fontStyle:"bold"},alternateRowStyles:{fillColor:[250,246,239]}});
+  ctx.y=ctx.doc.lastAutoTable.finalY+7;
+  pdfText(ctx,`La ubicación exacta de cada punto puede consultarse en la aplicación del Comité Vecinal. Agradeceremos que la respuesta o el número de atención se haga llegar a este Comité.`,{after:2});
+  pdfText(ctx,"Sin otro particular, agradecemos de antemano su atención y quedamos en espera de su respuesta.",{after:4});
+  const {doc,W,M}=ctx; if(ctx.y>200){ doc.addPage(); ctx.y=30; }
+  const colW=(W-2*M)/2, filas=Math.ceil((ints.length+(ints.length%2?0:1))/2);
+  if(ctx.y+8+filas*21>266){ doc.addPage(); ctx.y=30; }
+  doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.text("A T E N T A M E N T E",W/2,ctx.y,{align:"center"});
+  let y=ctx.y+16;
+  const caja=(cx,cy)=>{ doc.setDrawColor(...GRIS); doc.setLineDashPattern([1.5,1.2],0); doc.setLineWidth(0.3); doc.rect(cx-32,cy-13,64,26); doc.setLineDashPattern([],0);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...GRIS); doc.text("Sello y fecha de recibido",cx,cy-9,{align:"center"}); doc.setTextColor(...TINTA); };
+  ints.forEach((p,i)=>{ const col=i%2, x=M+col*colW+colW/2; if(col===0&&i>0) y+=21;
+    doc.setDrawColor(...TINTA); doc.setLineWidth(0.3); doc.line(x-32,y,x+32,y); doc.setFont("helvetica","bold"); doc.setFontSize(9.5); doc.text(p.nombre,x,y+4.5,{align:"center",maxWidth:colW-6});
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.text((p.cargo||"").toUpperCase(),x,y+8.8,{align:"center"}); });
+  // El recuadro de recibido ocupa el lugar libre junto a la última firma, o una fila nueva.
+  if(ints.length%2) caja(M+colW+colW/2,y+5); else caja(M+colW+colW/2,y+24);
+  pdfPie(ctx,""); return doc;
+}
+async function entregarPDF(doc,name,modo){
+  const blob=doc.output("blob"); const file=new File([blob],name,{type:"application/pdf"});
+  if(modo==="compartir"&&navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:name}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000);
+}
+const depsDe = k=>numerosDe(k);
+function depSelectH(k){ const deps=depsDe(k); return `<label>Dirigido a<select id="ofDep">${deps.map((n,i)=>`<option value="${i}">${esc(n.dependencia)}${n.oficina?" · "+esc(n.oficina):""}${n.dirigido?" — "+esc(n.dirigido):""}</option>`).join("")}<option value="-1"${deps.length?"":" selected"}>A quien corresponda</option></select></label>
+  ${deps.length&&!deps.some(n=>n.dirigido)&&isComite()?`<div class="hint" style="margin:0">Tip: en «Números oficiales» agrega a la dependencia el nombre y cargo del titular para que el oficio vaya dirigido a esa persona.</div>`:""}
+  ${!deps.length?`<div class="hint" style="margin:0">${isComite()?"Liga una dependencia a esta sección en «Números oficiales» para dirigir el oficio.":"El comité aún no registra la dependencia de esta sección; el oficio irá «A quien corresponda»."}</div>`:""}`; }
+function waDepTexto(r){ const c=CATS[r.categoria]; const {it,calle,entre}=ubicacionDe(r); const u=S.user;
+  return `Buen día. Soy ${u.nombre}, vecino del Fraccionamiento Trinidad de las Huertas (${u.calle} ${u.casa}). Quiero reportar: ${r.tipo}${c.inv?` en el ${c.item} ${it?codigo(it):(r.itemCodigo||"S/N")}`:""}${calle?`, ${calle}`:""}${entre?` entre ${entre}`:""}.${r.comentario?` ${r.comentario}.`:""}\nUbicación: ${gmaps(r.lat,r.lon)}\nFolio del Comité Vecinal: ${r.rid}\nGracias por su atención.`; }
+function oficioModal(r,recien){
+  const deps=depsDe(r.categoria);
+  const m=modal(`<h3>${recien?"¡Reporte enviado! ":""}Oficio para la dependencia</h3>
+    <p>${recien?"Si quieres, lleva tu reporte por escrito a la dependencia. ":""}Descarga el oficio, imprímelo, <b>fírmalo</b> y entrégalo. Pide que te sellen de recibido tu copia y después sube la foto del acuse aquí en tu reporte.</p>
+    ${depSelectH(r.categoria)}
+    <div class="biz-actions" style="margin:0"><button type="button" class="btn primary" id="ofDl">${svgI("archivo",'width="17" height="17"')}Descargar oficio</button><button type="button" class="btn" id="ofSh">Compartir oficio</button>
+      <a class="btn wa wide" id="ofWa" target="_blank" rel="noopener" hidden>Escribir por WhatsApp a la dependencia</a></div>
+    <div class="hint err" id="ofErr" hidden></div>
+    <div class="row"><button type="button" class="btn" id="ofNo">${recien?"Ahora no":"Cerrar"}</button></div>`,"wide");
+  const dep=()=>{ const i=+m.querySelector("#ofDep").value; return i>=0?deps[i]:null; };
+  const upd=()=>{ const d=dep(), a=m.querySelector("#ofWa"); if(d&&d.whatsapp){ a.hidden=false; a.href=waLink(d.whatsapp,waDepTexto(r)); a.textContent=`Escribir por WhatsApp a ${d.dependencia}`; } else a.hidden=true; };
+  m.querySelector("#ofDep").onchange=upd; upd();
+  const go=async modo=>{ const er=m.querySelector("#ofErr"); er.hidden=true; toast("Preparando el oficio…");
+    try{ const doc=await oficioVecino(r,dep()); await entregarPDF(doc,`Oficio ${CATS[r.categoria].n} ${r.rid}.pdf`,modo); }catch(e){ er.textContent="No se pudo generar el PDF. Revisa tu internet e intenta de nuevo."; er.hidden=false; } };
+  m.querySelector("#ofDl").onclick=()=>go("descargar"); m.querySelector("#ofSh").onclick=()=>go("compartir"); m.querySelector("#ofNo").onclick=()=>m.remove();
+}
+function oficioGeneralModal(k){
+  const c=CATS[k]; const lista = c.inv ? catItems(k).filter(p=>!isGreen(p)).sort((a,b)=>(a.num??999)-(b.num??999)) : catReps(k).filter(isOpen).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+  const m=modal(`<h3>Oficio general · ${esc(c.n)}</h3><p>Un solo oficio firmado por los integrantes del comité con ${lista.length} ${lista.length===1?OFICIO[k].unidad[0]:OFICIO[k].unidad[1]} ${c.inv?"con falla":"pendientes"}. Los firmantes salen de «Conoce a tu comité».</p>
+    ${depSelectH(k)}<div class="hint err" id="ogErr" hidden></div>
+    <div class="row"><button type="button" class="btn" id="ogNo">Cancelar</button><button type="button" class="btn primary" style="flex:0 0 auto" id="ogOk"${lista.length?"":" disabled"}>Descargar oficio</button></div>`,"wide");
+  const deps=depsDe(k); m.querySelector("#ogNo").onclick=()=>m.remove();
+  m.querySelector("#ogOk").onclick=async()=>{ const i=+m.querySelector("#ofDep").value; toast("Preparando el oficio…");
+    try{ const doc=await oficioGeneral(k,lista,i>=0?deps[i]:null); await entregarPDF(doc,`Oficio general ${c.n} ${fecha(nowISO()).replace(/\//g,"-")}.pdf`,"descargar"); }catch(e){ const er=m.querySelector("#ogErr"); er.textContent="No se pudo generar el PDF. Revisa tu internet e intenta de nuevo."; er.hidden=false; } };
+}
+function acuseH(r){ if(!OFICIO[r.categoria]||!(r.mio||isStaff())) return "";
+  return `<div class="seglbl">Oficio a la dependencia</div><div class="biz-actions"><button type="button" class="btn${r.acuse?"":" primary"} wide" id="rOficio">${svgI("archivo",'width="17" height="17"')}Oficio para la dependencia</button>
+    <label class="btn fotobtn" for="acuseIn" style="justify-content:center">${svgCam}${r.acuse?"Cambiar acuse":"Subir acuse sellado"}</label><input type="file" id="acuseIn" accept="image/*" hidden>
+    <button type="button" class="btn" id="rFolioDep">${r.folioDep?"Folio: "+esc(r.folioDep):"Anotar folio de la dependencia"}</button></div>
+    ${r.acuse?`<div class="foto"><img src="${fotoURL(r.acuse)}" alt="Acuse de recibido del oficio" loading="lazy" referrerpolicy="no-referrer"></div>`:""}`; }
+function wireAcuse(r){ const b=$("rOficio"); if(!b) return; b.onclick=()=>oficioModal(r);
+  wireFotoUpload("acuseIn",async b64=>{ const res=await api("reporteAcuse",{rid:r.rid,data:b64}); r.acuse=res.acuse; await refresh(); const r2=reps.find(x=>x.rid===r.rid)||r; openRep(r2); });
+  $("rFolioDep").onclick=()=>formModal("Folio de la dependencia","Si al entregar el oficio te dieron un número de reporte o folio, anótalo aquí.",`<input id="fdp" value="${esc(r.folioDep)}" maxlength="60" placeholder="Ej. SOAPA-12345">`,"Guardar",
+    async m=>{ const res=await api("reporteAcuse",{rid:r.rid,folioDep:m.querySelector("#fdp").value.trim()}); r.folioDep=res.folioDep; toast("Folio guardado"); await refresh(); openRep(reps.find(x=>x.rid===r.rid)||r); }); }
+
 // ---------- Excel ----------
 function loadXLSX(){ return new Promise((res,rej)=>{ if(window.XLSX) return res(window.XLSX); const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload=()=>res(window.XLSX); sc.onerror=rej; document.head.appendChild(sc); }); }
 const sheetItems = rows=>rows.map(p=>({"#":p.num,[CATS[p.categoria].code]:codigo(p),"Cómo está":p.falla,"Seguimiento":labelOf(p),"Calle":p.ubicacion||"","Entre calles":p.entre||"","Cuadrilla":p.cuadrilla||"","Reportes abiertos":openReps(p.id).length,"Notas":p.notas||"","Actualizado":p.actualizado?fechaHora(p.actualizado):"","Latitud":p.lat,"Longitud":p.lon,"Google Maps":gmaps(p.lat,p.lon)}));
@@ -1467,6 +1609,7 @@ async function refresh(){
 setInterval(()=>{ if(S.token&&!document.hidden&&!(gest&&gest.type==="pin")) refresh(); },25000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&S.token) refresh(); });
 window.addEventListener("resize",()=>{ if(cat) draw(); });
+window.addEventListener("hashchange",()=>{ if(!S.token) return; const h=(location.hash||"").slice(1); const k=CATS[h]||h==="todo"||h==="lugares"||isPage(h)?h:""; if(k!==cat) setCat(k); });
 
 // ---------- Acceso ----------
 function showAuth(){ $("auth").hidden=false; }
