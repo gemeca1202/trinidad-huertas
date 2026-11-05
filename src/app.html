@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Trinidad de las Huertas</title>
+<meta name="description" content="App del Comité Vecinal para reportar y dar seguimiento a luminarias, drenaje, baches, fugas, apagones, basura y poda en el Fraccionamiento Trinidad de las Huertas.">
+<meta name="theme-color" content="#7a1f2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trinidad TH">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Base heredada de la página de postes: guinda, oro y verde del sello del Comité Vecinal. */
+@@CSS@@
+/* ---- App de todo el fraccionamiento ---- */
+body{touch-action:auto}
+#svg{touch-action:none}
+.app>.view{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.top .back{margin-left:-6px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--head-gold);color:var(--head);font:800 14px var(--display);display:grid;place-items:center;border:0;cursor:pointer;flex:none}
+.cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line);z-index:5;flex:none}
+.cats::-webkit-scrollbar,.stats::-webkit-scrollbar{display:none}
+.cats .chip{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:7px 11px}
+.cats .chip svg{width:15px;height:15px}
+.cats .chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cats .chip .cnt{font:800 11px var(--display);background:var(--rep);color:#fff;border-radius:999px;padding:1px 6px;min-width:18px;text-align:center}
+.cats .chip[aria-pressed="true"] .cnt{background:var(--head-gold);color:var(--head)}
+#home{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.wrap{width:100%;max-width:760px;margin:0 auto;display:grid;gap:16px}
+.hello .hi{font:800 22px var(--display);color:var(--accent);text-wrap:balance}
+.hello .sub{font-size:14px;color:var(--muted);margin-top:2px}
+.bigreport{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font:800 17px var(--display);padding:16px;box-shadow:0 0 0 3px var(--head-gold),var(--shadow);cursor:pointer}
+.bigreport svg{width:22px;height:22px}
+.alertcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--panel));color:var(--ink);border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit}
+.alertcard b{font:800 26px var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.alertcard span{font:600 14.5px var(--body)}
+.h3{font:800 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 -6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.card{display:grid;gap:6px;align-content:start;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:14px;padding:12px;cursor:pointer;font:inherit;min-height:118px;position:relative}
+.card .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff}
+.card .ic svg{width:22px;height:22px}
+.card .nm{font:800 15px var(--display);line-height:1.15}
+.card .ds{font-size:12.5px;color:var(--muted);line-height:1.25}
+.card .mt{font:700 13px var(--body);font-variant-numeric:tabular-nums;margin-top:auto}
+.card .mt.bad{color:var(--rep)}.card .mt.good{color:var(--done)}
+.card .bar{height:6px}
+.card.wide{grid-column:1/-1;grid-template-columns:auto 1fr;align-items:center;min-height:0}
+.mine{display:grid;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+.mine .li:last-child{border-bottom:0}
+.pill{display:inline-block;font:700 10.5px var(--body);text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:999px;color:#fff;white-space:nowrap}
+.li .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
+.li .ic svg{width:17px;height:17px}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+.app>.sheet{position:absolute}
+.pin .ico{stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pin.faded{opacity:.55}
+.badge{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none}
+.badge svg{width:28px;height:28px}
+.who{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;display:grid;gap:2px;margin:0 0 12px}
+.who b{font:700 14.5px var(--display)}
+.who a{color:var(--accent);font-weight:600}
+.seg3{grid-template-columns:repeat(3,1fr)}
+.seg button[data-e="nuevo"][aria-pressed="true"]{background:var(--rep)}
+.near{border:1px dashed var(--gold);border-radius:12px;padding:10px;display:grid;gap:8px;background:color-mix(in srgb,var(--gold) 8%,var(--panel))}
+.near .r{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13.5px}
+.near .r .btn{padding:7px 10px;font-size:13px;flex:none}
+.modal .box{max-height:calc(100dvh - 40px);overflow:auto}
+.modal .box.wide{width:min(100%,440px)}
+.chooser{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chooser button{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px;font:700 13.5px var(--display);cursor:pointer;text-align:left}
+.chooser .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
+.chooser .ic svg{width:17px;height:17px}
+.fotoprev{width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.ulist .li{cursor:default;align-items:flex-start;flex-wrap:wrap}
+.ulist .ua{display:flex;gap:6px;flex-wrap:wrap;width:100%;padding-left:40px}
+.ulist select{width:auto;padding:6px 8px;font-size:14px}
+.ulist .btn{padding:6px 10px;font-size:13px}
+.blog .li{cursor:default}
+.blog time{font:600 12px var(--body);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Acceso */
+.auth{position:fixed;inset:0;overflow-y:auto;background:var(--head);display:grid;place-items:start center;padding:max(28px,env(safe-area-inset-top,0px)) 16px 28px;z-index:30}
+.auth .card2{width:min(100%,420px);background:var(--panel);border-radius:20px;border-top:5px solid var(--head-gold);box-shadow:var(--shadow);padding:22px 18px;display:grid;gap:14px;margin-top:4vh}
+.auth .brand{display:grid;justify-items:center;gap:6px;text-align:center}
+.auth .brand .seal{width:84px;height:84px}
+.auth .brand .seal img{width:80px;height:80px}
+.auth .brand .eyebrow{font:700 11px var(--display);letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.auth .brand h1{font:800 22px var(--display);color:var(--accent);margin:0}
+.auth .brand p{margin:0;color:var(--muted);font-size:14px;line-height:1.35}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;border-radius:9px;padding:10px;font:700 14px var(--display);color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.auth .err{color:var(--rep);font-weight:600;font-size:13.5px}
+.auth .small{font-size:12.5px;color:var(--muted);line-height:1.35}
+.pwrow{position:relative}
+.pwrow button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--accent);font:600 12.5px var(--body);cursor:pointer;padding:6px}
+.loading{display:grid;place-items:center;height:100%;color:var(--muted);font:600 14px var(--body)}
+</style>
+</head>
+<body>
+
+<div class="auth" id="auth" hidden>
+  <div class="card2">
+    <div class="brand">
+      <div class="seal"><img alt="Sello del Comité Vecinal Trinidad de las Huertas" src="seal.jpg"></div>
+      <div class="eyebrow">Comité Vecinal</div>
+      <h1>Trinidad de las Huertas</h1>
+      <p>Reporta luminarias, drenaje, baches, fugas, apagones, basura y poda. El comité da seguimiento a cada reporte.</p>
+    </div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" id="tabIn" aria-selected="true">Entrar</button><button type="button" role="tab" id="tabUp" aria-selected="false">Crear cuenta</button></div>
+    <form id="fIn" autocomplete="on">
+      <label>Usuario<input id="inU" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+      <label>Contraseña<div class="pwrow"><input id="inP" name="password" type="password" autocomplete="current-password" required><button type="button" class="eye">Ver</button></div></label>
+      <div class="err" id="inErr" hidden></div>
+      <button class="btn primary" type="submit">Entrar</button>
+      <div class="small">¿Olvidaste tu contraseña? Pide a alguien del comité que te la restablezca desde la app.</div>
+    </form>
+    <form id="fUp" autocomplete="on" hidden>
+      <label>Nombre completo<input id="upN" autocomplete="name" maxlength="80" required></label>
+      <div class="row2">
+        <label>Calle<input id="upC" list="calles" maxlength="80" required placeholder="Ej. Huerto Los Olmos"></label>
+        <label>Número de casa<input id="upH" maxlength="20" required placeholder="Ej. 104"></label>
+      </div>
+      <label>Teléfono (opcional)<input id="upT" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Para que el comité te contacte"></label>
+      <label>Usuario<input id="upU" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="30" required placeholder="Ej. juan.perez"></label>
+      <label>Contraseña<div class="pwrow"><input id="upP" type="password" autocomplete="new-password" minlength="6" required placeholder="Al menos 6 caracteres"><button type="button" class="eye">Ver</button></div></label>
+      <div class="err" id="upErr" hidden></div>
+      <button class="btn primary" type="submit">Crear mi cuenta</button>
+      <div class="small">Tus reportes quedan a tu nombre para que el comité les dé seguimiento. Tu teléfono y tu casa solo los ve el comité.</div>
+    </form>
+    <datalist id="calles"></datalist>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <header class="top">
+    <button class="iconbtn back" id="btnBack" type="button" aria-label="Volver al inicio" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="seal" id="topSeal"><img alt="Sello del Comité Vecinal" src="seal.jpg"></div>
+    <div class="grow">
+      <div class="eyebrow" id="topEye">Comité Vecinal</div>
+      <h1 id="topTitle">Trinidad de las Huertas</h1>
+    </div>
+    <div class="chips"><button class="iconbtn" id="btnList" type="button" aria-label="Lista" title="Lista" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button><button class="avatar" id="btnMe2" type="button" aria-label="Mi cuenta">·</button></div>
+  </header>
+  <nav class="cats" id="cats" aria-label="Secciones"></nav>
+
+  <div class="view" id="home"><div class="loading">Cargando…</div></div>
+
+  <div class="view" id="mapView" hidden>
+    <div class="stats" id="summary" aria-live="polite"></div>
+    <div id="map">
+      <svg id="svg" aria-label="Croquis del fraccionamiento" role="img">
+        <g id="world"></g>
+        <g id="labels"></g>
+        <g id="pins"></g>
+      </svg>
+      <div class="north" aria-label="El norte está hacia arriba" role="img"><svg viewBox="0 0 22 26"><path d="M11 1 L19 24 L11 18 L3 24 Z" fill="var(--accent)"/><path d="M11 1 L11 18 L3 24 Z" fill="var(--head-gold)"/></svg><b>N</b></div>
+      <div class="legend" id="legend" aria-hidden="true"></div>
+      <div class="fabs">
+        <button class="fab" id="btnFilter" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span id="filterTxt">Solo con falla</span></button>
+        <button class="fab" id="btnFit" type="button" aria-label="Ver todo el fraccionamiento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Ver todo</button>
+        <button class="fab" id="btnNew" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg><span id="newTxt">Nuevo</span></button>
+        <button class="fab primary" id="btnReport" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg><span id="reportTxt">Reportar</span></button>
+      </div>
+      <div class="banner" id="placeBanner" hidden><span class="msg" id="placeMsg"></span><button type="button" id="useGps" class="gpsbtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Usar mi ubicación</button><button type="button" id="cancelPlace">Cancelar</button></div>
+      <div class="banner" id="dbBanner" hidden></div>
+      <button class="locate" id="btnMe" type="button" aria-pressed="false" aria-label="Mostrar dónde estoy" title="Dónde estoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+    </div>
+  </div>
+  <section class="sheet" id="sheet" hidden aria-live="polite"></section>
+  <div class="toast" id="toast" hidden><span id="toastMsg"></span><button type="button" id="toastBtn" hidden>Deshacer</button></div>
+</div>
+
+<script>
+// Dirección de la API (Google Apps Script) de la app.
+const API_URL = "@@API_URL@@";
+// Página anterior de postes (solo para traer sus datos una vez).
+const OLD_API = "https://script.google.com/macros/s/AKfycbzPOBRHvCv_cYERdi3chHSuC9DZpm4mnq2xQyJrgxswtv0IJOGCby9y5RXbukBaBWlzVQ/exec";
+(function(){
+@@GEO@@
+
+// ---------- Secciones ----------
+const ICON = {
+  todo:'<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/>',
+  luminarias:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
+  drenaje:'<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 8v8M12 8v8M15.5 8v8"/>',
+  baches:'<path d="M2.5 17.5h19"/><path d="M5.5 17.5c.8-3 3.3-4.5 6.5-4.5s5.7 1.5 6.5 4.5"/><path d="M9 9.5l1.5-2M14 9l1.8-1.6M12 8V5.5"/>',
+  fugas:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+  apagones:'<path d="M13 2.5 5 13.5h6l-1 8 8-11h-6z"/>',
+  basura:'<path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/>',
+  poda:'<path d="M12 21v-6.5"/><path d="M7.5 14.5h9a3.5 3.5 0 0 0 .6-6.95A5.2 5.2 0 0 0 7 7.6a3.5 3.5 0 0 0 .5 6.9z"/><path d="M12 17.5l-3-2.5M12 16.5l3-2.2"/>'
+};
+const svgI = (k,attrs='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${ICON[k]||""}</svg>`;
+const CATS = {
+  luminarias:{n:"Luminarias", s:"luminaria", item:"poste", Item:"Poste", inv:true, col:"#c8902a", desc:"Postes del alumbrado público",
+    fallas:["Funciona bien","Apagada","Fundida","Parpadea","Se queda prendida de día","Requiere reparación","Falta luminaria","Revisar poste","Requiere poda","Otra"],
+    tipoDe:f=>({"Funciona bien":"ok","Falta luminaria":"falta","Revisar poste":"revisar","Requiere poda":"poda"})[f]||"reparacion",
+    tipos:{reparacion:["Por reparar","var(--rep)"],falta:["Falta luminaria","var(--falta)"],revisar:["Revisar poste","var(--rev)"],poda:["Requiere poda","var(--poda)"],ok:["Funciona bien","var(--done)"]},
+    rep:["Apagada","Parpadea","Se queda prendida de día","Fundida","Requiere poda","Falta luminaria","Poste dañado","Otra"], repToFalla:{"Poste dañado":"Revisar poste"},
+    code:"Número de poste", codePh:"Ej. 14582 o S/N", hecho:"Reparado", legible:true},
+  drenaje:{n:"Drenaje", s:"registro de drenaje", item:"registro", Item:"Registro", inv:true, col:"#3f6779", desc:"Registros y coladeras",
+    fallas:["Funciona bien","Tapado","Se desborda","Sin tapa","Tapa rota","Hundimiento","Mal olor","Otra"],
+    tipoDe:f=>({"Funciona bien":"ok","Tapado":"reparacion","Se desborda":"reparacion","Sin tapa":"peligro","Tapa rota":"peligro","Hundimiento":"peligro"})[f]||"revisar",
+    tipos:{reparacion:["Tapado o desborda","var(--rep)"],peligro:["Sin tapa / peligro","var(--falta)"],revisar:["Revisar","var(--rev)"],ok:["Funciona bien","var(--done)"]},
+    rep:["Tapado","Se desborda","Sin tapa","Tapa rota","Hundimiento","Mal olor","Otra"], repToFalla:{},
+    code:"Identificador del registro", codePh:"Ej. R-12 o S/N", hecho:"Atendido"},
+  baches:{n:"Baches", s:"bache", inv:false, col:"#7a5230", desc:"Calles y banquetas", rep:["Bache","Hundimiento","Banqueta dañada","Tope dañado","Otro"]},
+  fugas:{n:"Fugas de agua", s:"fuga de agua", inv:false, col:"#2f6fd6", desc:"Agua potable", rep:["Fuga en la calle","Fuga en toma o medidor","Sin agua","Baja presión","Agua sucia","Otra"]},
+  apagones:{n:"Apagones", s:"apagón", inv:false, col:"#6a4c9c", desc:"Luz en casas (CFE)", rep:["Sin luz en mi casa","Sin luz en la calle o sector","Bajo voltaje o variaciones","Cables caídos o colgando","Transformador dañado","Otra"]},
+  basura:{n:"Basura", s:"problema de basura", inv:false, col:"#8a6d1f", desc:"Limpieza y recolección", rep:["Basura acumulada","Tiradero clandestino","No pasó el camión","Escombro o cacharros","Animal muerto","Otra"]},
+  poda:{n:"Poda y árboles", s:"árbol o poda", inv:false, col:"#2e7d4f", desc:"Árboles y áreas verdes", rep:["Ramas tapan luminaria","Ramas sobre cables","Árbol caído","Árbol en riesgo de caer","Maleza o pasto crecido","Otra"]}
+};
+const ORDER = ["luminarias","drenaje","baches","fugas","apagones","basura","poda"];
+const EST = {nuevo:["Nuevo","var(--rep)"], proceso:["En atención","var(--gold)"], atendido:["Atendido","var(--done)"], descartado:["Descartado","var(--muted)"]};
+const ROLTXT = {vecino:"Vecino", operador:"Operador de mantenimiento", comite:"Comité"};
+const ERR = {credenciales:"Usuario o contraseña incorrectos.", usuario_existe:"Ese usuario ya existe. Elige otro.", usuario_invalido:"El usuario debe tener de 3 a 30 letras o números, sin espacios ni acentos (puedes usar punto o guion).",
+  pw_corta:"La contraseña debe tener al menos 6 caracteres.", faltan_datos:"Completa tu nombre, calle y número de casa.", bloqueado:"Tu cuenta está bloqueada. Habla con el comité.",
+  bloqueo_temporal:"Demasiados intentos. Espera 15 minutos.", red:"Sin conexión con la hoja de datos. Revisa tu internet.", permiso:"No tienes permiso para hacer esto.", clave:"Clave incorrecta.",
+  ubicacion:"Esa ubicación queda fuera del fraccionamiento.", demasiados:"Ya enviaste muchos reportes hoy. Intenta mañana.", foto:"No se pudo guardar la foto.", lleno:"La hoja de datos está llena; avisa al comité.", a_ti_mismo:"No puedes quitarte tu propio rol de comité ni bloquearte."};
+const errTxt = e => ERR[e&&e.code] || ERR[e&&e.message] || "No se pudo completar. Intenta de nuevo.";
+
+// ---------- Utilidades ----------
+const $ = id=>document.getElementById(id);
+const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fecha = iso=>{ try{ return new Date(iso).toLocaleDateString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric"}); }catch(e){ return ""; } };
+const fechaHora = iso=>{ try{ return new Date(iso).toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } };
+const hace = iso=>{ const d=(Date.now()-new Date(iso).getTime())/6e4; if(!(d>=0)) return fecha(iso); if(d<2) return "hace un momento"; if(d<60) return `hace ${Math.round(d)} min`; if(d<1440) return `hace ${Math.round(d/60)} h`; if(d<2880) return "ayer"; if(d<43200) return `hace ${Math.round(d/1440)} días`; return fecha(iso); };
+const nowISO = ()=>new Date().toISOString();
+const norm = t=>String(t??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const gmaps = (lat,lon)=>`https://www.google.com/maps/search/?api=1&query=${(+lat).toFixed(6)},${(+lon).toFixed(6)}`;
+const histPush = (p,t)=>[...(Array.isArray(p.historial)?p.historial:[]),{f:nowISO(),t,u:S.user?S.user.nombre:""}].slice(-60);
+const fotoURL = id => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`;
+const dist = (a,b)=>{ const [x1,y1]=llToW(a.lat,a.lon),[x2,y2]=llToW(b.lat,b.lon); return Math.hypot(x1-x2,y1-y2); };
+const store = { get(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } }, set(k,v){ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v)); }catch(e){} } };
+function parseLL(str){
+  const t=String(str||"").replace(/%2C/gi,",");
+  const m = t.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || t.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/i) || t.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  if(!m) return null; const lat=+m[1], lon=+m[2];
+  if(!(lat>16.9&&lat<17.2&&lon>-96.9&&lon<-96.5)) return {far:true};
+  const [x,y]=llToW(lat,lon); if(x<B[0]-400||x>B[2]+400||y<B[1]-400||y>B[3]+400) return {far:true};
+  return {lat,lon};
+}
+
+// ---------- Estado ----------
+const S = { token:"", user:null };
+{ const ss=store.get("sesionTH"); if(ss&&ss.token){ S.token=ss.token; S.user=ss.user; } }
+let items=[], reps=[], loaded=false;
+let cat="";                  // "" inicio · "todo" mapa general · clave de sección
+let selected=null;           // "i:id" o "r:rid"
+let view={s:1,tx:0,ty:0};
+let placing=null;            // null · "report" · "new"
+let pendingNew=null, creating=null;
+let myPos=null, watchId=null;
+let filtro = store.get("filtroTH") || {};   // por sección: true = solo pendientes / solo abiertos
+const rol = ()=>S.user?S.user.rol:"";
+const isComite = ()=>rol()==="comite";
+const isStaff = ()=>rol()==="comite"||rol()==="operador";
+
+// ---------- API ----------
+async function api(action, body={}){
+  let j;
+  try{ const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,action,token:S.token})}); j=await r.json(); }
+  catch(e){ const er=new Error("red"); er.code="red"; throw er; }
+  if(!j.ok){ const er=new Error(j.error||"error"); er.code=j.error; if(j.error==="sesion"&&action!=="login"&&action!=="registro") logout("Tu sesión terminó. Vuelve a entrar."); throw er; }
+  return j;
+}
+async function guard(fn,okMsg){ try{ const r=await fn(); if(okMsg) toast(okMsg); return r||true; }catch(e){ toast(errTxt(e)); return false; } }
+function setSession(token,user){ S.token=token; S.user=user; store.set("sesionTH",token?{token,user}:null); }
+function logout(msg){ setSession("",null); items=[]; reps=[]; loaded=false; closeSheet(); $("app").hidden=true; showAuth(); if(msg) authMsg(msg); }
+
+// ---------- Item (inventario) ----------
+const codigo = p=>String(p.codigo||p.poste||"").trim()||"S/N";
+const isGreen = p=>p.tipo==="ok"||p.estado==="atendido";
+const tipoOf = p=>p.tipo||CATS[p.categoria].tipoDe(p.falla);
+const colorOf = p=>{ const c=CATS[p.categoria]; return isGreen(p)?"var(--done)":((c.tipos[tipoOf(p)]||c.tipos.reparacion||c.tipos.revisar)[1]); };
+const labelOf = p=>{ const c=CATS[p.categoria]; if(p.tipo==="ok") return "Funciona bien"; if(p.estado==="atendido") return p.tipo==="poda"?"Podado":c.hecho; return (c.tipos[tipoOf(p)]||c.tipos.reparacion||c.tipos.revisar)[0]; };
+const legibleOf = p=>p.numLegible!==undefined?!!p.numLegible:(/\d/.test(p.poste||p.codigo||"")&&!/s\/n/i.test(p.poste||p.codigo||""));
+const openReps = id=>reps.filter(r=>r.itemId===id&&(r.estado==="nuevo"||r.estado==="proceso"));
+const isOpen = r=>r.estado==="nuevo"||r.estado==="proceso";
+const catItems = k=>items.filter(p=>p.categoria===k);
+const catReps = k=>reps.filter(r=>r.categoria===k);
+function stat(k){
+  const c=CATS[k];
+  if(c.inv){ const it=catItems(k); const ok=it.filter(isGreen).length; const nuevos=catReps(k).filter(r=>r.estado==="nuevo").length; const bad=it.length-ok;
+    return {total:it.length, ok, bad, nuevos, abiertos:bad+catReps(k).filter(r=>r.estado==="nuevo"&&!r.itemId).length, pct:it.length?Math.round(ok/it.length*100):null}; }
+  const rr=catReps(k); const ab=rr.filter(isOpen).length; const at=rr.filter(r=>r.estado==="atendido").length;
+  return {abiertos:ab, atendidos:at, nuevos:rr.filter(r=>r.estado==="nuevo").length};
+}
+
+// ---------- Mapa ----------
+const svg=$("svg"), gWorld=$("world"), gLabels=$("labels"), gPins=$("pins");
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const wpath=pts=>"M"+pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join("L");
+for(const w of WAYS){ const main=w.n.startsWith("Av."), pr=w.n.startsWith("Priv"); el("path",{d:wpath(w.pts),class:"street-c","stroke-width":main?17:pr?8:12},gWorld); }
+for(const w of WAYS){ const main=w.n.startsWith("Av."), pr=w.n.startsWith("Priv"); el("path",{d:wpath(w.pts),class:"street","stroke-width":main?14:pr?5.5:9},gWorld); }
+$("calles").innerHTML=[...new Set(WAYS.map(w=>w.n).filter(n=>n!=="Privada"))].sort().map(n=>`<option value="${esc(n)}">`).join("");
+const B=(()=>{let a=[1e9,1e9,-1e9,-1e9];WAYS.forEach(w=>w.pts.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)]}));return a;})();
+function fit(){ const r=svg.getBoundingClientRect(); if(!r.width) return; const pad=28;
+  const s=Math.min((r.width-pad*2)/(B[2]-B[0]),(r.height-pad*2-60)/(B[3]-B[1]));
+  view={s,tx:r.width/2-(B[0]+B[2])/2*s,ty:(r.height-50)/2-(B[1]+B[3])/2*s}; draw(); }
+const toS=(x,y)=>[x*view.s+view.tx,y*view.s+view.ty];
+const fromS=(sx,sy)=>[(sx-view.tx)/view.s,(sy-view.ty)/view.s];
+function center(lat,lon,minS,fy){ const r=svg.getBoundingClientRect(); const [x,y]=llToW(lat,lon); const s=Math.max(view.s,minS||3); view={s,tx:r.width/2-x*s,ty:r.height*(fy||0.3)-y*s}; draw(); }
+function draw(){
+  gWorld.setAttribute("transform",`translate(${view.tx},${view.ty}) scale(${view.s})`);
+  gLabels.textContent="";
+  if(view.s>0.55) for(const L of LABELS){ const [x,y]=toS(L.x,L.y); let d=L.ang*180/Math.PI; if(d>90)d-=180; if(d<-90)d+=180;
+    const t=el("text",{x,y,class:"slabel"+(L.main?" main":""),"text-anchor":"middle","dominant-baseline":"central",transform:`rotate(${d} ${x} ${y}) translate(0 ${L.main?0:-13})`},gLabels); t.textContent=L.t; }
+  drawPins();
+}
+function visiblePins(){
+  const out=[];
+  if(cat==="todo"){
+    items.filter(p=>!isGreen(p)).forEach(p=>out.push({k:"i:"+p.id,p,icon:p.categoria,col:colorOf(p),lab:`${CATS[p.categoria].Item} ${codigo(p)}, ${labelOf(p)}`}));
+    reps.filter(r=>isOpen(r)&&!CATS[r.categoria].inv).forEach(r=>out.push({k:"r:"+r.rid,r,icon:r.categoria,col:EST[r.estado][1],lab:`${CATS[r.categoria].n}: ${r.tipo}, ${EST[r.estado][0]}`}));
+    reps.filter(r=>r.estado==="nuevo"&&CATS[r.categoria].inv&&!r.itemId).forEach(r=>out.push({k:"r:"+r.rid,r,icon:r.categoria,col:EST.nuevo[1],lab:`${CATS[r.categoria].n}: ${r.tipo}`}));
+    return out;
+  }
+  const c=CATS[cat]; if(!c) return out; const only=!!filtro[cat];
+  if(c.inv){
+    catItems(cat).forEach(p=>{ if(only&&isGreen(p)&&("i:"+p.id)!==selected) return; out.push({k:"i:"+p.id,p,num:p.num??"•",col:colorOf(p),ok:p.tipo==="ok",dot:openReps(p.id).length>0,lab:`${c.Item} ${codigo(p)}, ${labelOf(p)}`}); });
+    catReps(cat).filter(r=>r.estado==="nuevo"&&!r.itemId).forEach(r=>out.push({k:"r:"+r.rid,r,icon:cat,col:EST.nuevo[1],lab:`Reporte: ${r.tipo}`}));
+  } else {
+    catReps(cat).forEach(r=>{ const op=isOpen(r); if(r.estado==="descartado") return; if(!op&&only) return; out.push({k:"r:"+r.rid,r,icon:cat,col:EST[r.estado][1],faded:!op,lab:`${r.tipo}, ${EST[r.estado][0]}`}); });
+  }
+  return out;
+}
+let pinCache=[];
+function drawPins(){
+  gPins.textContent="";
+  if(myPos){ const [wx,wy]=llToW(myPos.lat,myPos.lon); const [x,y]=toS(wx,wy); const g=el("g",{class:"me",transform:`translate(${x},${y})`},gPins);
+    el("circle",{r:Math.max(10,Math.min(120,myPos.acc*view.s)),class:"acc"},g); el("circle",{r:8,class:"dot"},g); }
+  pinCache=visiblePins().sort((a,b)=>(a.k===selected)-(b.k===selected));
+  for(const q of pinCache){ const o=q.p||q.r; const [wx,wy]=(q.p&&q.p._drag)||llToW(o.lat,o.lon); const [x,y]=toS(wx,wy);
+    const g=el("g",{class:"pin"+(q.k===selected?" sel":"")+(q.ok?" ok":"")+(q.faded?" faded":""),transform:`translate(${x},${y})`,"data-k":q.k,tabindex:"0",role:"button","aria-label":q.lab},gPins);
+    const R=q.ok?10:13;
+    if(q.k===selected) el("circle",{r:R+4,class:"ring"},g);
+    el("circle",{r:R,class:"dot",fill:q.col},g);
+    if(q.icon){ const ic=el("g",{class:"ico",transform:"translate(-7.8,-7.8) scale(.65)"},g); ic.innerHTML=ICON[q.icon]; }
+    else { const t=el("text",{},g); t.textContent=q.num; }
+    if(q.dot) el("circle",{cx:R-3,cy:-R+3,r:5.5,class:"rep"},g);
+  }
+  if(pendingNew){ const [x,y]=toS(pendingNew.x,pendingNew.y); const g=el("g",{class:"newpin",transform:`translate(${x},${y})`},gPins);
+    el("circle",{r:14,class:"halo"},g); el("circle",{r:15},g); const t=el("text",{},g); t.textContent=creating?("#"+nextNum(cat)):"+"; }
+}
+const findPin = k=>pinCache.find(q=>q.k===k);
+const nextNum = k=>Math.max(0,...catItems(k).map(q=>q.num||0))+1;
+
+// Gestos: mover, pellizcar, arrastrar puntos (solo comité en su sección de inventario)
+const ptrs=new Map(); let gest=null;
+const canDrag = q=>q&&q.p&&isComite()&&cat===q.p.categoria&&!placing;
+svg.addEventListener("pointerdown",e=>{
+  svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const pin=e.target.closest&&e.target.closest(".pin");
+  if(ptrs.size===1){
+    if(pin){ const q=findPin(pin.dataset.k); gest={type:"pin",q,sx:e.clientX,sy:e.clientY,moved:false}; }
+    else gest={type:"pan",sx:e.clientX,sy:e.clientY,tx:view.tx,ty:view.ty,moved:false};
+  } else if(ptrs.size===2){
+    if(gest&&gest.type==="pin"&&gest.q&&gest.q.p) delete gest.q.p._drag;
+    const [a,b]=[...ptrs.values()]; gest={type:"pinch",d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2,my:(a.y+b.y)/2,s:view.s,tx:view.tx,ty:view.ty,moved:true};
+  }
+});
+svg.addEventListener("pointermove",e=>{
+  if(!ptrs.has(e.pointerId)||!gest) return; ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const r=svg.getBoundingClientRect();
+  if(gest.type==="pan"){ const dx=e.clientX-gest.sx,dy=e.clientY-gest.sy; if(Math.hypot(dx,dy)>5) gest.moved=true; view.tx=gest.tx+dx; view.ty=gest.ty+dy; draw(); }
+  else if(gest.type==="pin"){ const dx=e.clientX-gest.sx,dy=e.clientY-gest.sy;
+    if(!gest.moved&&Math.hypot(dx,dy)>7){ if(!canDrag(gest.q)){ gest={type:"pan",sx:e.clientX,sy:e.clientY,tx:view.tx,ty:view.ty,moved:true}; return; } gest.moved=true; selected=gest.q.k; }
+    if(gest.moved){ gest.q.p._drag=fromS(e.clientX-r.left,e.clientY-r.top); drawPins(); } }
+  else if(gest.type==="pinch"&&ptrs.size>=2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+    const s=Math.max(.4,Math.min(12,gest.s*d/gest.d)); const mx=(a.x+b.x)/2-r.left,my=(a.y+b.y)/2-r.top,m0x=gest.mx-r.left,m0y=gest.my-r.top;
+    const wx=(m0x-gest.tx)/gest.s,wy=(m0y-gest.ty)/gest.s; view={s,tx:mx-wx*s,ty:my-wy*s}; draw(); }
+});
+function endPtr(e){
+  if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
+  const r=svg.getBoundingClientRect();
+  if(gest&&ptrs.size===0){
+    if(gest.type==="pin"){
+      const q=gest.q;
+      if(gest.moved&&q&&q.p&&q.p._drag){ const [x,y]=q.p._drag; delete q.p._drag; const [lat,lon]=wToLL(x,y); moveItem(q.p,lat,lon); }
+      else if(q&&placing==="report"&&q.p&&q.p.categoria===cat){ setPlacing(null); reportModal({cat,item:q.p,lat:q.p.lat,lon:q.p.lon}); }
+      else if(q){ selected=q.k; pendingNew=null; openPin(q); }
+    } else if(gest.type==="pan"&&!gest.moved){
+      const [x,y]=fromS(e.clientX-r.left,e.clientY-r.top);
+      if(placing){ pendingNew={x,y}; const mode=placing; setPlacing(null); placeAt(mode); }
+      else if(creating&&pendingNew){ pendingNew={x,y}; const [la,lo]=wToLL(x,y); creating.lat=la; creating.lon=lo; const c=$("sheetCoords"); if(c) c.textContent=la.toFixed(6)+", "+lo.toFixed(6); }
+      else if(selected||!$("sheet").hidden) closeSheet();
+    }
+    gest=null; drawPins();
+  } else if(ptrs.size===1&&gest&&gest.type==="pinch"){ const [p]=[...ptrs.values()]; gest={type:"pan",sx:p.x,sy:p.y,tx:view.tx,ty:view.ty,moved:true}; }
+}
+svg.addEventListener("pointerup",endPtr); svg.addEventListener("pointercancel",endPtr);
+svg.addEventListener("wheel",e=>{ e.preventDefault(); const r=svg.getBoundingClientRect(); const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const s=Math.max(.4,Math.min(12,view.s*Math.exp(-e.deltaY*0.0015))); const wx=(mx-view.tx)/view.s,wy=(my-view.ty)/view.s; view={s,tx:mx-wx*s,ty:my-wy*s}; draw(); },{passive:false});
+svg.addEventListener("keydown",e=>{ const pin=e.target.closest&&e.target.closest(".pin"); if(pin&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); const q=findPin(pin.dataset.k); if(q){ selected=q.k; openPin(q); drawPins(); } } });
+function openPin(q){ if(q.p) openItem(q.p); else openRep(q.r); }
+
+// ---------- Avisos ----------
+let toastTimer=null, undoFn=null;
+function toast(msg,undo){ $("toastMsg").textContent=msg; undoFn=undo||null; $("toastBtn").hidden=!undo; $("toast").hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{$("toast").hidden=true;undoFn=null;},undo?6000:3200); }
+$("toastBtn").onclick=()=>{ const f=undoFn; $("toast").hidden=true; undoFn=null; if(f) f(); };
+function modal(html,cls){ const m=document.createElement("div"); m.className="modal"; m.innerHTML=`<div class="box ${cls||""}">${html}</div>`; document.body.appendChild(m);
+  m.addEventListener("pointerdown",e=>{ if(e.target===m) m.remove(); }); return m; }
+
+// ---------- Navegación ----------
+function renderCats(){
+  const chip=(k,t,icon,n)=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${cat===k}">${icon?svgI(icon):""}${t}${n?`<span class="cnt">${n}</span>`:""}</button>`;
+  $("cats").innerHTML = chip("","Inicio","") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("");
+  $("cats").querySelectorAll(".chip").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
+  const a=$("cats").querySelector('[aria-pressed="true"]'); if(a&&a.scrollIntoView) a.scrollIntoView({inline:"nearest",block:"nearest"});
+}
+function setCat(k,keepView){
+  closeSheet(); setPlacing(null); cat=k; selected=null;
+  const home=!k; $("home").hidden=!home; $("mapView").hidden=home; $("btnBack").hidden=home; $("topSeal").hidden=!home; $("btnList").hidden=home;
+  $("topEye").textContent = home?"Comité Vecinal":"Trinidad de las Huertas";
+  $("topTitle").textContent = home?"Trinidad de las Huertas":(k==="todo"?"Mapa general":CATS[k].n);
+  renderCats();
+  if(home){ renderHome(); $("home").scrollTop=0; }
+  else { summary(); legend(); fabs(); if(!keepView) requestAnimationFrame(fit); else draw(); }
+  try{ history.replaceState(null,"",k?"#"+k:location.pathname+location.search); }catch(e){}
+}
+$("btnBack").onclick=()=>setCat("");
+$("btnFit").onclick=()=>fit();
+$("btnList").onclick=()=>openList();
+$("btnMe2").onclick=()=>openAccount();
+$("btnFilter").onclick=()=>{ filtro[cat]=!filtro[cat]; store.set("filtroTH",filtro); fabs(); drawPins(); };
+$("btnReport").onclick=()=>{ if(cat==="todo") return chooseCat(); setPlacing("report"); };
+$("btnNew").onclick=()=>setPlacing("new");
+$("cancelPlace").onclick=()=>{ setPlacing(null); pendingNew=null; drawPins(); };
+$("useGps").onclick=async()=>{ const mode=placing; $("placeMsg").textContent="Buscando tu ubicación…"; const r=await locate();
+  if(!r.ok){ $("placeMsg").textContent=r.msg; return; } const [x,y]=llToW(r.lat,r.lon);
+  if(x<B[0]-400||x>B[2]+400||y<B[1]-400||y>B[3]+400){ $("placeMsg").textContent="Tu ubicación queda fuera del fraccionamiento. Toca el lugar en el croquis."; return; }
+  pendingNew={x,y}; setPlacing(null); center(r.lat,r.lon,3,0.25); placeAt(mode); };
+function fabs(){
+  const c=CATS[cat]; const st=c?stat(cat):null;
+  $("btnFilter").hidden = !c; $("btnFilter").setAttribute("aria-pressed",String(!!filtro[cat]));
+  $("filterTxt").textContent = !c?"":c.inv?(filtro[cat]?"Mostrar todos":"Solo con falla"):(filtro[cat]?"Ver atendidos":"Solo abiertos");
+  $("btnNew").hidden = !(c&&c.inv&&isComite()); if(c&&c.inv) $("newTxt").textContent="Nuevo "+c.item;
+  $("reportTxt").textContent = cat==="todo"?"Reportar un problema":c.inv?`Reportar ${c.s}`:`Reportar ${c.s}`;
+}
+function legend(){
+  const c=CATS[cat]; const row=(col,t)=>`<span><i style="background:${col}"></i>${t}</span>`;
+  $("legend").innerHTML = !c ? row(EST.nuevo[1],"Nuevo")+row(EST.proceso[1],"En atención / con falla")
+    : c.inv ? Object.values(c.tipos).map(([t,col])=>row(col,t)).join("")
+    : row(EST.nuevo[1],"Nuevo")+row(EST.proceso[1],"En atención")+row(EST.atendido[1],"Atendido");
+}
+function summary(){
+  const st=(n,t,col)=>`<span class="stat">${col?`<i style="background:${col}"></i>`:""}<b>${n}</b>${t}</span>`;
+  let h="";
+  if(cat==="todo"){ const pend=ORDER.reduce((a,k)=>a+stat(k).abiertos,0); h=st(pend,"pendientes en todo el fraccionamiento");
+    if(isStaff()){ const n=reps.filter(r=>r.estado==="nuevo").length; if(n) h=`<button type="button" class="stat alert" id="openRep"><b>${n}</b>${n===1?"reporte nuevo":"reportes nuevos"}</button>`+h; } }
+  else { const c=CATS[cat], s=stat(cat);
+    const alertH=(isStaff()&&s.nuevos)?`<button type="button" class="stat alert" id="openRep"><b>${s.nuevos}</b>${s.nuevos===1?"reporte nuevo":"reportes nuevos"}</button>`:"";
+    if(c.inv){ const it=catItems(cat), bad=it.filter(p=>!isGreen(p)); const n=t=>bad.filter(p=>tipoOf(p)===t).length;
+      h = it.length ? alertH+st(it.length,"registrados")+Object.entries(c.tipos).filter(([k])=>k!=="ok").map(([k,[t,col]])=>st(n(k),t.toLowerCase(),col)).join("")+st(it.length-bad.length,"funcionan","var(--done)")
+        : alertH+`<span class="stat muted">${isComite()?`Aún no hay ${c.item}s. Toca «Nuevo ${c.item}» para agregar el primero.`:`Aún no hay ${c.item}s registrados. Puedes reportar uno.`}</span>`;
+    } else { const rr=catReps(cat); h=alertH+st(rr.filter(r=>r.estado==="nuevo").length,"nuevos",EST.nuevo[1])+st(rr.filter(r=>r.estado==="proceso").length,"en atención",EST.proceso[1])+st(rr.filter(r=>r.estado==="atendido").length,"atendidos",EST.atendido[1]); }
+  }
+  $("summary").innerHTML=h; const o=$("openRep"); if(o) o.onclick=()=>openPendientes(cat==="todo"?"":cat);
+}
+function setPlacing(mode){
+  placing=mode; $("placeBanner").hidden=!mode; if(!mode) return;
+  closeSheet(); pendingNew=null; drawPins(); const c=CATS[cat];
+  $("placeMsg").textContent = mode==="new" ? `Toca el croquis donde está el ${c.item} o usa tu ubicación.`
+    : c.inv ? `Toca el ${c.item} que quieres reportar. Si no está en el mapa, toca su lugar o usa tu ubicación.`
+    : `Toca en el croquis dónde está el ${c.s} o usa tu ubicación.`;
+}
+function placeAt(mode){
+  const [lat,lon]=wToLL(pendingNew.x,pendingNew.y);
+  if(mode==="new") return openNewItem(lat,lon);
+  drawPins(); reportModal({cat,lat,lon,onClose:()=>{ pendingNew=null; drawPins(); }});
+}
+function chooseCat(after){
+  const m=modal(`<h3>¿Qué quieres reportar?</h3><div class="chooser">${ORDER.map(k=>`<button type="button" data-k="${k}"><span class="ic" style="background:${CATS[k].col}">${svgI(k)}</span>${esc(CATS[k].n)}</button>`).join("")}</div><div class="row"><button type="button" class="btn" id="chNo">Cancelar</button></div>`);
+  m.querySelector("#chNo").onclick=()=>m.remove();
+  m.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{ m.remove(); setCat(b.dataset.k); setTimeout(()=>setPlacing("report"),60); });
+}
+
+// ---------- Inicio ----------
+function renderHome(){
+  const u=S.user; if(!u) return;
+  if(!loaded){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
+  const nNuevos=reps.filter(r=>r.estado==="nuevo").length;
+  const mine=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const card=k=>{ const c=CATS[k], s=stat(k); let mt;
+    if(c.inv){ mt = s.total ? `<div class="bar" style="--mcol:${s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)"}"><i style="width:${s.pct}%"></i></div><div class="mt ${s.bad?"bad":"good"}">${s.pct}% funciona · ${s.bad} con falla</div>` : `<div class="mt">Sin ${c.item}s registrados</div>`; }
+    else mt = `<div class="mt ${s.abiertos?"bad":"good"}">${s.abiertos?`${s.abiertos} ${s.abiertos===1?"abierto":"abiertos"}`:"Sin reportes abiertos"}</div>`;
+    return `<button type="button" class="card" data-k="${k}"><span class="ic" style="background:${c.col}">${svgI(k)}</span><span class="nm">${esc(c.n)}</span><span class="ds">${esc(c.desc)}</span>${mt}</button>`; };
+  $("home").innerHTML = `<div class="wrap">
+    <div class="hello"><div class="hi">Hola, ${esc(String(u.nombre||"").split(" ")[0]||u.usuario)}</div><div class="sub">${esc(u.calle)} ${esc(u.casa)} · ${esc(ROLTXT[u.rol]||"Vecino")}</div></div>
+    <button type="button" class="bigreport" id="hReport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>Reportar un problema</button>
+    ${isStaff()&&nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
+    <div class="h3">Secciones</div>
+    <div class="cards">${ORDER.map(card).join("")}
+      <button type="button" class="card wide" data-k="todo"><span class="ic" style="background:var(--accent)">${svgI("todo")}</span><span><span class="nm" style="display:block">Mapa general</span><span class="ds">Todos los pendientes del fraccionamiento en un solo croquis</span></span></button></div>
+    <div class="h3">Mis reportes</div>
+    ${mine.length?`<div class="mine">${mine.slice(0,5).map(repLi).join("")}</div>${mine.length>5?`<button type="button" class="linkbtn" id="hMine">Ver mis ${mine.length} reportes</button>`:""}`:`<div class="mine"><div class="empty">Aún no has hecho reportes. Cuando reportes algo, aquí verás cómo va.</div></div>`}
+    ${isComite()&&!catItems("luminarias").length?`<button type="button" class="alertcard" id="hImport"><span>Traer los postes de la página anterior (postes-trinidad)</span></button>`:""}
+    <div class="foot">Comité Vecinal · Fraccionamiento Trinidad de las Huertas · Oaxaca de Juárez</div>
+  </div>`;
+  $("hReport").onclick=()=>chooseCat();
+  const hp=$("hPend"); if(hp) hp.onclick=()=>openPendientes("");
+  const hm=$("hMine"); if(hm) hm.onclick=()=>openMine();
+  const hi=$("hImport"); if(hi) hi.onclick=()=>importar();
+  $("home").querySelectorAll(".card").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
+  wireRepLi($("home"));
+}
+function repLi(r){ const c=CATS[r.categoria]; const it=r.itemId?items.find(p=>p.id===r.itemId):null;
+  const sub=[it?`${c.Item} ${codigo(it)}`:(r.itemCodigo&&c.inv?`${c.Item} ${r.itemCodigo}`:""), hace(r.fecha), (isStaff()&&!r.mio&&r.nombre)?r.nombre:""].filter(Boolean).join(" · ");
+  return `<button class="li" type="button" data-rid="${esc(r.rid)}"><span class="ic" style="background:${c.col}">${svgI(r.categoria)}</span><span class="b"><span class="p">${esc(r.tipo)}</span><span class="s" style="display:block">${esc(sub)}</span></span><span class="pill" style="background:${EST[r.estado][1]}">${EST[r.estado][0]}</span></button>`; }
+function wireRepLi(root){ root.querySelectorAll(".li[data-rid]").forEach(b=>b.onclick=()=>{ const r=reps.find(x=>x.rid===b.dataset.rid); if(r) focusRep(r); }); }
+function focusRep(r){
+  const c=CATS[r.categoria];
+  if(c.inv&&r.itemId){ const p=items.find(x=>x.id===r.itemId); if(p){ if(cat!==r.categoria) setCat(r.categoria,true); requestAnimationFrame(()=>{ center(p.lat,p.lon,3); selected="i:"+p.id; drawPins(); openItem(p,r.rid); }); return; } }
+  if(cat!==r.categoria&&cat!=="todo") setCat(r.categoria,true); else if(!cat) setCat(r.categoria,true);
+  requestAnimationFrame(()=>{ center(r.lat,r.lon,3); selected="r:"+r.rid; drawPins(); openRep(r); });
+}
+
+// ---------- Hojas ----------
+function closeSheet(){ const sh=$("sheet"); sh.classList.remove("compact"); sh.hidden=true; sh.innerHTML=""; selected=null; pendingNew=null; creating=null; if(cat) drawPins(); }
+function openSheet(html,compact){ const sh=$("sheet"); sh.classList.toggle("compact",!!compact); sh.hidden=false; sh.scrollTop=0; sh.innerHTML=`<div class="grab"></div>`+html; const x=sh.querySelector(".x"); if(x) x.onclick=closeSheet; return sh; }
+const xBtn=`<button class="x" type="button" aria-label="Cerrar">×</button>`;
+const histH = H=>{ H=(Array.isArray(H)?H:[]).slice().reverse(); return `<details class="hist"><summary>Historial${H.length?` (${H.length})`:""}</summary><ol>${H.map(h=>`<li><time>${esc(fechaHora(h.f))}</time><span>${esc(h.t)}${h.u?` · <i>${esc(h.u)}</i>`:""}</span></li>`).join("")||"<li><span>Sin movimientos</span></li>"}</ol></details>`; };
+const fotoH = (id,alt,uploadId,lbl)=>{ const img=id?`<img src="${fotoURL(id)}" alt="${esc(alt)}" loading="lazy" referrerpolicy="no-referrer">`:""; const btn=uploadId?`<label class="btn fotobtn" for="${uploadId}">${svgCam}${id?"Cambiar foto":lbl||"Agregar foto"}</label><input type="file" id="${uploadId}" accept="image/*" hidden>`:""; return (img||btn)?`<div class="foto">${img}${btn}</div>`:""; };
+const svgCam=`<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+const svgFlag=`<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>`;
+function resizeImage(file,max){ return new Promise((res,rej)=>{ const u=URL.createObjectURL(file); const im=new Image();
+  im.onload=()=>{ const sc=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)); const c=document.createElement("canvas"); c.width=Math.round(im.naturalWidth*sc); c.height=Math.round(im.naturalHeight*sc);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); res(c.toDataURL("image/jpeg",0.74).split(",")[1]); };
+  im.onerror=()=>{ URL.revokeObjectURL(u); rej(new Error("img")); }; im.src=u; }); }
+function wireFotoUpload(inputId,send){ const fi=$(inputId); if(!fi) return; fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; if(!f) return; toast("Subiendo foto…");
+  let b64; try{ b64=await resizeImage(f,1280); }catch(e){ toast("No se pudo leer la foto."); return; } await guard(()=>send(b64),"Foto guardada"); }; }
+
+// ---------- Ficha de inventario (postes, registros) ----------
+function itemHead(p,isNew){ const c=CATS[p.categoria];
+  return `<div class="shead"><div class="plate" id="sheetPlate">${esc(isNew?(p.codigo||"S/N"):codigo(p))}</div>
+    <div class="t"><h2>${isNew?`Nuevo ${c.item} #${nextNum(p.categoria)}`:esc(p.ubicacion||"Sin calle")}</h2>
+      ${isNew?`<span class="tag" id="sheetTag" style="background:var(--muted)">Elige cómo está</span>`:`<span class="tag" id="sheetTag" style="background:${colorOf(p)}">${esc(labelOf(p))}</span>`}
+      ${!isNew&&p.estado==="atendido"&&p.tipo!=="ok"&&p.fechaReparacion?`<div class="repdate">${esc(labelOf(p))} el ${esc(fecha(p.fechaReparacion))}</div>`:""}
+      <div class="coords" id="sheetCoords">${(+p.lat).toFixed(6)}, ${(+p.lon).toFixed(6)}</div></div>${xBtn}</div>`; }
+function itemRepsH(p,hl){ const rr=reps.filter(r=>r.itemId===p.id&&(isOpen(r)||r.rid===hl)).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  if(!rr.length) return ""; return `<div class="seglbl">Reportes de vecinos</div><div class="mine" style="margin-bottom:12px">${rr.map(repLi).join("")}</div>`; }
+function openItem(p,hlRid){
+  const c=CATS[p.categoria]; selected="i:"+p.id; drawPins();
+  const nr=openReps(p.id).length;
+  const repBtn=`<button type="button" class="btn reportbtn${isStaff()?"":" primary"}" id="btnRepItem">${svgFlag}Reportar falla de este ${c.item}${nr?` · ${nr} ${nr===1?"reporte abierto":"reportes abiertos"}`:""}</button>`;
+  if(!isStaff()){
+    const seg=p.tipo==="ok"?"Funciona bien":p.estado==="atendido"?`${labelOf(p)}${p.fechaReparacion?" el "+fecha(p.fechaReparacion):""}`:"Pendiente de atención";
+    const sh=openSheet(itemHead(p,false)+fotoH(p.foto,`Foto del ${c.item} ${codigo(p)}`)+
+      `<dl class="facts"><div><dt>Cómo está</dt><dd>${esc(p.falla||"—")}</dd></div><div><dt>Seguimiento</dt><dd>${esc(seg)}</dd></div>
+        <div class="wide"><dt>Calle</dt><dd>${esc(p.ubicacion||"—")}</dd></div>${p.entre?`<div class="wide"><dt>Entre calles</dt><dd>${esc(p.entre)}</dd></div>`:""}</dl>`+
+      repBtn+itemRepsH(p,hlRid)+`<div class="actions"><a class="btn" href="${gmaps(p.lat,p.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a></div>`);
+    $("btnRepItem").onclick=()=>reportModal({cat:p.categoria,item:p,lat:p.lat,lon:p.lon});
+    wireRepLi(sh); return;
+  }
+  const ESTADOS={pendiente:"Pendiente",atendido:p.tipo==="poda"?"Podado":c.hecho};
+  const segH=p.tipo!=="ok"?`<div class="seglbl">Seguimiento de la reparación</div><div class="seg" role="group" aria-label="Seguimiento">${Object.entries(ESTADOS).map(([k,v])=>`<button type="button" data-e="${k}" aria-pressed="${(p.estado||"pendiente")===k}">${v}</button>`).join("")}</div>`:"";
+  const sh=openSheet(itemHead(p,false)+fotoH(p.foto,`Foto del ${c.item} ${codigo(p)}`,"fotoIn",`Agregar foto del ${c.item}`)+segH+itemRepsH(p,hlRid)+repBtn+itemForm(p,false)+
+    `<div class="meta">#${p.num??"—"}${p.actualizado?` · Actualizado ${esc(fechaHora(p.actualizado))}`:""}${isComite()?" · Para moverlo, arrastra el punto con el dedo.":""}</div>`+histH(p.historial));
+  $("btnRepItem").onclick=()=>reportModal({cat:p.categoria,item:p,lat:p.lat,lon:p.lon});
+  wireRepLi(sh); wireItemForm(p,false);
+  wireFotoUpload("fotoIn",async b64=>{ const r=await api("itemFoto",{id:p.id,data:b64}); p.foto=r.foto; await saveItem(p,{historial:histPush(p,p.foto?"Se cambió la foto":"Se agregó foto")},null,true); openItem(p); });
+  sh.querySelectorAll(".seg button").forEach(b=>b.onclick=async()=>{ const e=b.dataset.e; if((p.estado||"pendiente")===e) return;
+    const now=nowISO(); const upd={estado:e,historial:histPush(p,`Seguimiento: ${ESTADOS[e]}`),fechaReparacion:e==="atendido"?now:null};
+    if(await saveItem(p,upd,`${c.Item} ${codigo(p)}: ${ESTADOS[e]}`)){ if(e==="atendido") await refresh(); openItem(p); } });
+}
+function itemForm(p,isNew){
+  const c=CATS[p.categoria]; const ro=isComite()?"":" disabled";
+  const fallaOpts=(isNew?`<option value="" selected disabled>Elige…</option>`:"")+c.fallas.map(f=>`<option${!isNew&&p.falla===f?" selected":""}>${esc(f)}</option>`).join("")+(p.falla&&!c.fallas.includes(p.falla)?`<option selected>${esc(p.falla)}</option>`:"");
+  return `<form id="pform" autocomplete="off">
+    <div class="row2">
+      <label>${esc(c.code)}<input id="f-cod" name="codigo" value="${esc(isNew?"":codigo(p)==="S/N"&&!p.codigo&&!p.poste?"":(p.codigo||p.poste||""))}" placeholder="${esc(c.codePh)}"${ro}></label>
+      <label>Cómo está<select id="f-falla" name="falla" required${ro}>${fallaOpts}</select></label>
+    </div>
+    ${c.legible?`<label class="check"><input type="checkbox" id="f-leg"${(isNew||legibleOf(p))?" checked":""}${ro}> El número del poste se lee bien</label>`:""}
+    <label>Cuadrilla<select name="cuadrilla">${[["","Sin asignar"],["1","Cuadrilla 1"],["2","Cuadrilla 2"],["3","Cuadrilla 3"]].map(([v,t])=>`<option value="${v}"${(p.cuadrilla||"")===v?" selected":""}>${t}</option>`).join("")}</select></label>
+    ${isComite()?`<button type="button" class="linkbtn" id="showLoc">${isNew?"Ubicar con GPS o coordenadas":"Cambiar ubicación (GPS o coordenadas)"}</button>
+    <div class="locbox" id="locBox" hidden>
+      <button type="button" class="btn gpsbtn" id="gpsHere"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Usar mi ubicación actual</button>
+      <label>Ubicación desde Google Maps<input id="f-loc" placeholder="Pega aquí las coordenadas o el enlace" autocomplete="off"></label>
+      <div class="hint" id="locHint">En Google Maps mantén presionado el lugar, copia las coordenadas que aparecen arriba y pégalas aquí.</div>
+    </div>`:""}
+    <label>Calle / referencia<input name="ubicacion" value="${esc(p.ubicacion)}" placeholder="Ej. Privada de Limonares"${ro}></label>
+    <label>Entre calles<input name="entre" value="${esc(p.entre)}" placeholder="Ej. Limonares y Laureles"${ro}></label>
+    <label>Notas<textarea name="notas" placeholder="Algo que ayude a encontrarlo o a repararlo">${esc(p.notas)}</textarea></label>
+    <div class="actions">
+      <button class="btn primary" type="submit">${isNew?`Guardar ${c.item}`:(isComite()?"Guardar cambios":"Guardar notas")}</button>
+      <a class="btn" href="${gmaps(p.lat,p.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
+      ${!isNew&&isComite()?`<button class="btn danger" type="button" id="btnDel">Eliminar</button>`:""}
+    </div>
+    <div id="delBox"></div>
+  </form>`;
+}
+function wireItemForm(p,isNew){
+  const c=CATS[p.categoria];
+  const f=$("f-falla"); if(f) f.onchange=()=>{ const tag=$("sheetTag"); if(tag){ const q={...p,falla:f.value,tipo:c.tipoDe(f.value),estado:p.estado}; tag.style.background=colorOf(q); tag.textContent=labelOf(q); } };
+  const fc=$("f-cod"); if(fc) fc.oninput=()=>{ $("sheetPlate").textContent=fc.value.trim()||"S/N"; };
+  const inp=$("f-loc"); if(inp){ const hint=$("locHint");
+    $("showLoc").onclick=()=>{ $("showLoc").hidden=true; $("locBox").hidden=false; };
+    const apply=()=>{ const r=parseLL(inp.value);
+      if(!inp.value.trim()){ delete p._loc; hint.className="hint"; return; }
+      if(!r){ delete p._loc; hint.className="hint err"; hint.textContent=/goo\.gl|maps\.app/.test(inp.value)?"Ese enlace corto no trae las coordenadas. Copia los números (por ejemplo 17.0512, -96.7149).":"No encontré coordenadas. Deben verse como 17.0512, -96.7149."; return; }
+      if(r.far){ delete p._loc; hint.className="hint err"; hint.textContent="Esa ubicación queda fuera del fraccionamiento."; return; }
+      p._loc=r; hint.className="hint ok"; hint.textContent="Ubicación encontrada. Se guardará en este punto."; $("sheetCoords").textContent=r.lat.toFixed(6)+", "+r.lon.toFixed(6);
+      const [x,y]=llToW(r.lat,r.lon); if(isNew){ pendingNew={x,y}; p.lat=r.lat; p.lon=r.lon; } center(r.lat,r.lon,3,0.25);
+      if(!isNew){ const [sx,sy]=toS(x,y); el("circle",{cx:sx,cy:sy,r:15,class:"ghost"},gPins); } };
+    $("gpsHere").onclick=async()=>{ hint.className="hint"; hint.textContent="Buscando tu ubicación…"; const r=await locate(); if(!r.ok){ hint.className="hint err"; hint.textContent=r.msg; return; } inp.value=r.lat.toFixed(6)+", "+r.lon.toFixed(6); apply(); };
+    inp.addEventListener("input",apply); inp.addEventListener("paste",()=>setTimeout(apply,0)); }
+  $("pform").onsubmit=async ev=>{ ev.preventDefault(); const fd=new FormData($("pform")); const o={}; for(const [k,v] of fd) o[k]=String(v).trim();
+    if(!isComite()){ const upd={notas:o.notas,cuadrilla:o.cuadrilla,historial:histPush(p,"Notas actualizadas")}; if(await saveItem(p,upd,"Notas guardadas")) openItem(p); return; }
+    const lg=$("f-leg"); if(lg) o.numLegible=!!lg.checked;
+    o.tipo=c.tipoDe(o.falla); if(p.categoria==="luminarias") o.poste=o.codigo;
+    if(p._loc){ o.lat=+p._loc.lat.toFixed(7); o.lon=+p._loc.lon.toFixed(7); delete p._loc; }
+    if(isNew){ o.estado="pendiente"; o.lat=p.lat; o.lon=p.lon; o.historial=[{f:nowISO(),t:`Registrado: ${o.falla}`,u:S.user.nombre}];
+      const r=await guard(()=>api("itemGuardar",{categoria:p.categoria,data:o}),`${c.Item} guardado`); if(r&&r.item){ items.push(r.item); creating=null; pendingNew=null; summary(); renderCats(); selected="i:"+r.item.id; openItem(r.item); } return; }
+    const ch=[]; if(o.falla!==p.falla) ch.push(`Cómo está: ${o.falla}`); if(o.codigo!==(p.codigo||p.poste||"")) ch.push(`Número: ${o.codigo||"S/N"}`); if(o.lat) ch.push("Se cambió la ubicación");
+    if((o.ubicacion||"")!==(p.ubicacion||"")||(o.entre||"")!==(p.entre||"")) ch.push("Se cambió la calle"); if((o.notas||"")!==(p.notas||"")) ch.push("Notas actualizadas");
+    if(o.tipo==="ok"&&p.tipo!=="ok"){ o.estado="atendido"; o.fechaReparacion=nowISO(); } else if(o.tipo!=="ok"&&p.tipo==="ok"){ o.estado="pendiente"; o.fechaReparacion=null; }
+    o.historial=ch.length?histPush(p,ch.join(" · ")):p.historial;
+    if(await saveItem(p,o,"Cambios guardados")){ if(o.estado==="atendido") await refresh(); openItem(p); } };
+  const del=$("btnDel"); if(del) del.onclick=()=>{ $("delBox").innerHTML=`<div class="confirm">¿Eliminar el ${c.item} ${esc(codigo(p))}? <button class="btn danger" type="button" id="yesDel">Sí, eliminar</button><button class="btn" type="button" id="noDel">No</button></div>`;
+    $("noDel").onclick=()=>{ $("delBox").innerHTML=""; }; $("yesDel").onclick=async()=>{ if(await guard(()=>api("itemBorrar",{id:p.id}),`${c.Item} eliminado`)){ items=items.filter(x=>x.id!==p.id); closeSheet(); summary(); } }; };
+}
+async function saveItem(p,upd,msg,silent){
+  const r=await guard(()=>api("itemGuardar",{categoria:p.categoria,id:p.id,data:upd}),silent?null:msg);
+  if(r&&r.item){ Object.assign(p,r.item); items=items.map(x=>x.id===p.id?p:x); summary(); renderCats(); drawPins(); return true; } return false;
+}
+async function moveItem(p,lat,lon){ const orig=[p.lat,p.lon]; p.lat=lat; p.lon=lon; drawPins();
+  const ok=await saveItem(p,{lat:+lat.toFixed(7),lon:+lon.toFixed(7),historial:histPush(p,"Se movió en el croquis")},null,true);
+  if(ok) toast(`${CATS[p.categoria].Item} ${codigo(p)} movido`,async()=>{ await saveItem(p,{lat:orig[0],lon:orig[1],historial:histPush(p,"Se regresó a su lugar")},"Movimiento deshecho"); });
+  else { p.lat=orig[0]; p.lon=orig[1]; drawPins(); } }
+function openNewItem(lat,lon){
+  const p={categoria:cat,codigo:"",falla:"",estado:"pendiente",ubicacion:"",entre:"",notas:"",lat,lon}; creating=p;
+  center(lat,lon,2.2,0.2);
+  openSheet(itemHead(p,true)+itemForm(p,true)+`<div class="meta">Si el punto quedó en otro lugar, toca el croquis donde va. Después también puedes arrastrarlo.</div>`,true);
+  drawPins(); wireItemForm(p,true); setTimeout(()=>{ try{ $("f-cod").focus(); }catch(e){} },50);
+}
+
+// ---------- Ficha de reporte ----------
+function whoH(r){
+  if(r.mio) return `<div class="who"><b>Lo reportaste tú</b><span>${esc(fechaHora(r.fecha))}</span></div>`;
+  if(isStaff()&&r.nombre) return `<div class="who"><b>${esc(r.nombre)}</b><span>${esc(r.casa||"")}${r.usuario&&r.usuario!=="anterior"?` · @${esc(r.usuario)}`:""}</span>${r.telefono?`<a href="tel:${esc(r.telefono)}">${esc(r.telefono)}</a>`:""}<span style="color:var(--muted);font-size:12.5px">${esc(fechaHora(r.fecha))}</span></div>`;
+  return `<div class="who"><b>Reportado por un vecino</b><span>${esc(fechaHora(r.fecha))}</span></div>`;
+}
+function openRep(r){
+  const c=CATS[r.categoria]; selected="r:"+r.rid; drawPins();
+  const it=r.itemId?items.find(p=>p.id===r.itemId):null;
+  const est=EST[r.estado]||EST.nuevo;
+  const seg = isStaff() ? `<div class="seglbl">Seguimiento</div><div class="seg seg3" role="group">${["nuevo","proceso","atendido"].map(k=>`<button type="button" data-e="${k}" aria-pressed="${r.estado===k}">${EST[k][0]}</button>`).join("")}</div>` : "";
+  const apoyo = !r.mio&&isOpen(r) ? `<button type="button" class="btn reportbtn${r.apoyo?"":" primary"}" id="btnApoyo">${r.apoyo?"✓ Confirmaste que también lo ves":"Yo también lo veo"}${r.nApoyos?` · ${r.nApoyos} ${r.nApoyos===1?"vecino":"vecinos"}`:""}</button>` : (r.nApoyos?`<div class="hint" style="margin:0 0 12px">${r.nApoyos} ${r.nApoyos===1?"vecino confirmó":"vecinos confirmaron"} este reporte.</div>`:"");
+  const staffH = isStaff() ? `<form id="rform" autocomplete="off">
+      <label>Cuadrilla<select name="cuadrilla">${[["","Sin asignar"],["1","Cuadrilla 1"],["2","Cuadrilla 2"],["3","Cuadrilla 3"]].map(([v,t])=>`<option value="${v}"${(r.cuadrilla||"")===v?" selected":""}>${t}</option>`).join("")}</select></label>
+      <label>Notas del comité<textarea name="notas" placeholder="Folio, a quién se turnó, qué se hizo…">${esc(r.notas)}</textarea></label>
+      <div class="actions"><button class="btn primary" type="submit">Guardar notas</button>
+      ${c.inv&&!it&&isComite()&&r.estado==="nuevo"?`<button class="btn" type="button" id="btnAcc">Registrar ${c.item} y aceptar</button>`:""}
+      ${c.inv&&it&&isComite()&&r.estado==="nuevo"?`<button class="btn" type="button" id="btnAcc">Aceptar en el ${c.item}</button>`:""}
+      ${isComite()&&r.estado!=="descartado"?`<button class="btn danger" type="button" id="btnDesc">Descartar</button>`:""}</div></form>` : "";
+  const sh=openSheet(`<div class="shead"><div class="badge" style="background:${c.col}">${svgI(r.categoria)}</div>
+      <div class="t"><h2>${esc(r.tipo)}</h2><span class="tag" style="background:${est[1]}">${est[0]}</span>
+      <div class="coords">${esc(c.n)}${it?` · ${c.Item} ${esc(codigo(it))}`:(c.inv?` · ${c.Item} sin registrar`:"")}</div></div>${xBtn}</div>`+
+    fotoH(r.foto,`Foto del reporte`,isStaff()||r.mio?"fotoRep":null,"Agregar foto")+whoH(r)+
+    (r.comentario?`<dl class="facts"><div class="wide"><dt>Comentario</dt><dd>${esc(r.comentario)}</dd></div></dl>`:"")+
+    (r.estado!=="nuevo"&&r.fechaEstado?`<div class="repdate" style="margin:-4px 0 12px">${est[0]} desde ${esc(fecha(r.fechaEstado))}</div>`:"")+
+    apoyo+seg+staffH+
+    `<div class="actions" style="margin-top:10px">${it?`<button type="button" class="btn" id="btnGoItem">Ver el ${c.item}</button>`:""}<a class="btn" href="${gmaps(r.lat,r.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
+      ${r.mio&&r.estado==="nuevo"?`<button type="button" class="btn danger" id="btnCancel">Cancelar mi reporte</button>`:""}</div>
+    <div class="meta">Folio ${esc(r.rid)}</div>`+((isStaff()||r.mio)?histH(r.historial):""));
+  const ap=$("btnApoyo"); if(ap) ap.onclick=async()=>{ const res=await guard(()=>api("apoyar",{rid:r.rid}),null); if(res){ r.apoyo=res.apoyo; r.nApoyos=res.nApoyos; toast(res.apoyo?"Gracias, se sumó tu confirmación":"Quitaste tu confirmación"); openRep(r); } };
+  const gi=$("btnGoItem"); if(gi) gi.onclick=()=>{ if(cat!==it.categoria) setCat(it.categoria,true); center(it.lat,it.lon,3); openItem(it,r.rid); };
+  const cn=$("btnCancel"); if(cn) cn.onclick=async()=>{ if(await guard(()=>api("cancelarReporte",{rid:r.rid}),"Reporte cancelado")){ r.estado="descartado"; await refresh(); closeSheet(); } };
+  wireFotoUpload("fotoRep",async b64=>{ const res=await api("reporteFoto",{rid:r.rid,data:b64}); r.foto=res.foto; openRep(r); });
+  sh.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>setRepEstado(r,b.dataset.e));
+  const rf=$("rform"); if(rf) rf.onsubmit=async ev=>{ ev.preventDefault(); const fd=new FormData(rf); const notas=String(fd.get("notas")||"").trim(), cuadrilla=String(fd.get("cuadrilla")||"");
+    if(await guard(()=>api("reporteNotas",{rid:r.rid,notas,cuadrilla}),"Notas guardadas")){ r.notas=notas; r.cuadrilla=cuadrilla; } };
+  const acc=$("btnAcc"); if(acc) acc.onclick=()=>aceptarInv(r);
+  const ds=$("btnDesc"); if(ds) ds.onclick=()=>setRepEstado(r,"descartado");
+}
+async function setRepEstado(r,e,nota){
+  if(r.estado===e) return;
+  if(e==="atendido"&&CATS[r.categoria].inv&&r.itemId){ const it=items.find(p=>p.id===r.itemId); if(it&&!isGreen(it)){ toast(`Marca el ${CATS[r.categoria].item} como ${CATS[r.categoria].hecho.toLowerCase()}; sus reportes se cierran solos.`); return openItem(it,r.rid); } }
+  if(await guard(()=>api("reporteEstado",{rid:r.rid,estado:e,nota:nota||""}),`Reporte: ${EST[e][0]}`)){ await refresh(); const r2=reps.find(x=>x.rid===r.rid); if(r2&&!$("sheet").hidden&&selected==="r:"+r.rid) openRep(r2); return true; }
+  return false;
+}
+async function aceptarInv(r){
+  const c=CATS[r.categoria]; const f0=(c.repToFalla||{})[r.tipo]||r.tipo; const falla=c.fallas.includes(f0)?f0:"Otra";
+  let it=r.itemId?items.find(p=>p.id===r.itemId):null;
+  const ok=await guard(async()=>{
+    if(!it){ const res=await api("itemGuardar",{categoria:r.categoria,data:{codigo:r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:"",poste:r.categoria==="luminarias"?(r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:""):undefined,falla,tipo:c.tipoDe(falla),estado:"pendiente",lat:r.lat,lon:r.lon,ubicacion:"",entre:"",notas:r.comentario||"",historial:[{f:nowISO(),t:`Registrado desde el reporte de ${r.nombre||"un vecino"}: ${r.tipo}`,u:S.user.nombre}]}});
+      it=res.item; items.push(it); await api("reporteEstado",{rid:r.rid,estado:"proceso",itemId:it.id,itemCodigo:codigo(it)}); }
+    else { await api("itemGuardar",{categoria:r.categoria,id:it.id,data:{falla,tipo:c.tipoDe(falla),estado:"pendiente",fechaReparacion:null,historial:histPush(it,`Reporte de ${r.nombre||"un vecino"}: ${r.tipo}`)}});
+      await api("reporteEstado",{rid:r.rid,estado:"proceso"}); }
+  },`Reporte aceptado: ${c.Item} ${it?codigo(it):""} pendiente`);
+  if(ok){ await refresh(); const p=items.find(x=>x.id===it.id); if(p){ if(cat!==p.categoria) setCat(p.categoria,true); center(p.lat,p.lon,3); openItem(p,r.rid); } }
+}
+
+// ---------- Nuevo reporte ----------
+function reportModal(o){
+  const c=CATS[o.cat]; const u=S.user;
+  const near = !o.item ? reps.filter(r=>r.categoria===o.cat&&isOpen(r)&&!r.mio&&(!c.inv||!r.itemId)&&dist(r,o)<45).slice(0,3) : [];
+  const yaMio = o.item ? reps.find(r=>r.itemId===o.item.id&&r.mio&&isOpen(r)) : null;
+  const titulo = o.item ? `${c.Item} ${codigo(o.item)}${o.item.ubicacion?" · "+o.item.ubicacion:""}` : (c.inv?`${c.Item} que no está en el mapa, en el punto que marcaste`:"En el punto que marcaste en el croquis");
+  const m=modal(`<form id="rpForm" style="display:grid;gap:12px">
+    <h3>Reportar ${esc(c.s)}</h3><p>${esc(titulo)}</p>
+    ${yaMio?`<div class="hint ok" style="margin:0">Ya reportaste este ${c.item}; el comité lo tiene en ${EST[yaMio.estado][0].toLowerCase()}.</div>`:""}
+    ${near.length?`<div class="near"><div class="hint" style="margin:0">Ya hay ${near.length===1?"un reporte":"reportes"} muy cerca. Si es el mismo, confírmalo en lugar de repetirlo:</div>${near.map(r=>`<div class="r"><span><b>${esc(r.tipo)}</b> · ${esc(hace(r.fecha))}${r.nApoyos?` · ${r.nApoyos} confirmaciones`:""}</span><button type="button" class="btn" data-ap="${esc(r.rid)}">${r.apoyo?"Ya confirmado":"Es este"}</button></div>`).join("")}</div>`:""}
+    <label>¿Qué pasa?<select id="rpTipo" required><option value="" selected disabled>Elige…</option>${c.rep.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label>
+    <label>Comentario (opcional)<textarea id="rpCom" maxlength="400" placeholder="Desde cuándo, referencias, qué tan grave es…" style="min-height:70px"></textarea></label>
+    <label class="btn fotobtn" for="rpFoto">${svgCam}<span id="rpFotoTxt">Agregar foto (opcional)</span></label><input type="file" id="rpFoto" accept="image/*" hidden>
+    <img id="rpPrev" class="fotoprev" alt="Foto que vas a enviar" hidden>
+    <div class="hint" style="margin:0">Se registrará a tu nombre: <b>${esc(u.nombre)}</b> · ${esc(u.calle)} ${esc(u.casa)}</div>
+    <div class="hint err" id="rpErr" hidden></div>
+    <div class="row"><button type="button" class="btn" id="rpNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="rpOk">Enviar reporte</button></div></form>`,"wide");
+  let foto=null; const close=()=>{ m.remove(); if(o.onClose) o.onClose(); };
+  m.querySelector("#rpNo").onclick=close;
+  m.querySelectorAll("[data-ap]").forEach(b=>b.onclick=async()=>{ const r=reps.find(x=>x.rid===b.dataset.ap); if(!r||r.apoyo) return close(); const res=await guard(()=>api("apoyar",{rid:r.rid}),"Gracias, se sumó tu confirmación al reporte"); if(res){ r.apoyo=true; r.nApoyos=res.nApoyos; } close(); });
+  m.querySelector("#rpFoto").onchange=async ev=>{ const f=ev.target.files&&ev.target.files[0]; if(!f) return; try{ foto=await resizeImage(f,1280); const pv=m.querySelector("#rpPrev"); pv.src="data:image/jpeg;base64,"+foto; pv.hidden=false; m.querySelector("#rpFotoTxt").textContent="Cambiar foto"; }catch(e){ toast("No se pudo leer la foto."); } };
+  m.querySelector("#rpForm").onsubmit=async ev=>{ ev.preventDefault(); const b=m.querySelector("#rpOk"); b.disabled=true; b.textContent="Enviando…"; const er=m.querySelector("#rpErr"); er.hidden=true;
+    try{ const res=await api("reportar",{categoria:o.cat,itemId:o.item?o.item.id:"",itemCodigo:o.item?codigo(o.item):(c.inv?"S/N":""),tipo:m.querySelector("#rpTipo").value,comentario:m.querySelector("#rpCom").value.trim(),lat:+(+o.lat).toFixed(7),lon:+(+o.lon).toFixed(7),foto:foto||""});
+      m.remove(); pendingNew=null; await refresh(); toast("¡Gracias! Tu reporte llegó al comité.");
+      const r=reps.find(x=>x.rid===res.rid); if(r&&!(c.inv&&o.item)){ selected="r:"+r.rid; drawPins(); openRep(r); } else if(o.item){ const p=items.find(x=>x.id===o.item.id); if(p) openItem(p,res.rid); }
+    }catch(e){ er.textContent=errTxt(e); er.hidden=false; b.disabled=false; b.textContent="Enviar reporte"; } };
+  setTimeout(()=>{ try{ m.querySelector("#rpTipo").focus(); }catch(e){} },50);
+}
+
+// ---------- Listas ----------
+function openList(){
+  if(cat==="todo") return openPendientes("",true);
+  const c=CATS[cat]; if(!c) return;
+  let f="todos", q="";
+  const render=()=>{
+    let rows, chips;
+    if(c.inv){ const match=p=>f==="todos"||(f==="sinnum"?!legibleOf(p):f==="ok"?isGreen(p):(tipoOf(p)===f&&!isGreen(p)));
+      const mq=p=>!q||norm(codigo(p)).includes(norm(q))||norm(p.ubicacion).includes(norm(q))||String(p.num)===q;
+      rows=catItems(cat).filter(match).filter(mq).sort((a,b)=>(a.num??999)-(b.num??999));
+      chips=[["todos","Todos"],...Object.entries(c.tipos).filter(([k])=>k!=="ok").map(([k,[t]])=>[k,t]),["ok","Funcionan"],...(c.legible?[["sinnum","Sin número legible"]]:[])];
+    } else { const match=r=>f==="todos"?r.estado!=="descartado":r.estado===f; const mq=r=>!q||norm(r.tipo).includes(norm(q))||norm(r.comentario).includes(norm(q))||norm(r.nombre).includes(norm(q))||norm(r.casa).includes(norm(q));
+      rows=catReps(cat).filter(match).filter(mq).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+      chips=[["todos","Todos"],["nuevo","Nuevos"],["proceso","En atención"],["atendido","Atendidos"],...(isStaff()?[["descartado","Descartados"]]:[])]; }
+    const sh=openSheet(`<div class="shead"><div class="t"><h2>${c.inv?`Lista de ${c.item}s`:`Reportes de ${c.n.toLowerCase()}`}</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"resultado":"resultados"}</div></div>${xBtn}</div>
+      ${c.inv&&catItems(cat).length?meterH(cat):""}
+      <div class="srow" style="margin-bottom:10px"><input id="lq" type="search" placeholder="${c.inv?`Buscar por número o calle`:"Buscar por tipo, comentario o vecino"}" value="${esc(q)}" autocomplete="off"></div>
+      <div class="filters">${chips.map(([k,t])=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${f===k}">${esc(t)}</button>`).join("")}</div>
+      ${isStaff()?`<div class="dl"><button class="btn" type="button" id="btnDl"${rows.length?"":" disabled"}><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar en Excel</button></div>`:""}
+      <div class="list">${c.inv?rows.map(p=>`<button class="li" type="button" data-id="${esc(p.id)}"><span class="n" style="background:${colorOf(p)}">${p.num??"•"}</span><span class="b"><span class="p">${esc(c.Item)} ${esc(codigo(p))}</span><span class="s" style="display:block">${esc(p.falla)} · ${esc(p.ubicacion)}${p.cuadrilla&&!isGreen(p)?` · C${esc(p.cuadrilla)}`:""}</span></span>${openReps(p.id).length?`<span class="pill" style="background:var(--gold)">${openReps(p.id).length} rep.</span>`:p.estado==="atendido"&&p.tipo!=="ok"?`<span class="st">${esc(labelOf(p))}</span>`:""}</button>`).join(""):rows.map(repLi).join("")}${rows.length?"":'<div class="empty">No hay nada en este filtro.</div>'}</div>`);
+    sh.querySelectorAll(".filters .chip").forEach(b=>b.onclick=()=>{ f=b.dataset.f; render(); });
+    const lq=$("lq"); lq.oninput=()=>{ q=lq.value.trim(); const pos=lq.selectionStart; render(); const n=$("lq"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
+    sh.querySelectorAll(".li[data-id]").forEach(b=>b.onclick=()=>{ const p=items.find(x=>x.id===b.dataset.id); if(p){ center(p.lat,p.lon,3); openItem(p); } });
+    wireRepLi(sh); const om=$("openMeter"); if(om) om.onclick=null;
+    const dl=$("btnDl"); if(dl) dl.onclick=()=>downloadXlsx(c.inv?{[c.n]:sheetItems(rows)}:{[c.n]:sheetReps(rows)},`${c.n} ${fecha(nowISO()).replace(/\//g,"-")}`);
+  };
+  render();
+}
+function meterH(k){ const s=stat(k); const col=s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)";
+  return `<div class="meter" style="--mcol:${col};cursor:default"><div class="mt"><span>Funcionamiento</span><b>${s.pct}%</b></div><div class="bar" role="img" aria-label="${s.pct} por ciento funcionando"><i style="width:${s.pct}%"></i></div><div class="ms">${s.ok} de ${s.total} ${CATS[k].item}s registrados funcionan</div></div>`; }
+function openPendientes(k,all){
+  const rows=reps.filter(r=>(!k||r.categoria===k)&&(all?isOpen(r):r.estado==="nuevo")).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const sh=openSheet(`<div class="shead"><div class="t"><h2>${all?"Pendientes":"Reportes nuevos"}${k?" · "+esc(CATS[k].n):""}</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"reporte":"reportes"}</div></div>${xBtn}</div>
+    <div>${rows.map(r=>{ const c=CATS[r.categoria]; const it=r.itemId?items.find(p=>p.id===r.itemId):null;
+      return `<div class="repitem" data-rid="${esc(r.rid)}"><div class="t" style="display:flex;gap:8px;align-items:center"><span class="li" style="display:contents"><span class="ic" style="background:${c.col}">${svgI(r.categoria)}</span></span>${esc(c.n)}: ${esc(r.tipo)}</div>
+        <div class="m">${it?`${c.Item} ${esc(codigo(it))} (#${it.num})${it.ubicacion?" · "+esc(it.ubicacion):""}`:(c.inv?`${c.Item} sin registrar`:"")}${r.comentario?` · “${esc(r.comentario)}”`:""}</div>
+        <div class="m">${esc(r.nombre||"Vecino")}${r.casa?" · "+esc(r.casa):""} · ${esc(fechaHora(r.fecha))}${r.nApoyos?` · ${r.nApoyos} confirmaciones`:""}</div>
+        <div class="a"><button type="button" class="btn" data-a="ver">Ver en el mapa</button>
+          ${r.estado==="nuevo"?(c.inv?(isComite()?`<button type="button" class="btn primary" data-a="acc" style="flex:0 0 auto">${it?"Aceptar":"Registrar y aceptar"}</button>`:""):`<button type="button" class="btn primary" data-a="proc" style="flex:0 0 auto">En atención</button>`):""}
+          ${isComite()?`<button type="button" class="btn danger" data-a="desc">Descartar</button>`:""}</div></div>`; }).join("")||'<div class="empty">No hay reportes nuevos. ¡Todo al día!</div>'}</div>`);
+  sh.querySelectorAll(".repitem").forEach(d=>{ const r=reps.find(x=>x.rid===d.dataset.rid);
+    d.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{ const a=b.dataset.a;
+      if(a==="ver") return focusRep(r); if(a==="acc") return aceptarInv(r);
+      if(await setRepEstado(r,a==="proc"?"proceso":"descartado")) openPendientes(k,all); }); });
+}
+function openMine(){
+  const rows=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const sh=openSheet(`<div class="shead"><div class="t"><h2>Mis reportes</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"reporte":"reportes"}</div></div>${xBtn}</div><div class="list">${rows.map(repLi).join("")||'<div class="empty">Aún no has hecho reportes.</div>'}</div>`);
+  wireRepLi(sh);
+}
+
+// ---------- Cuenta ----------
+function openAccount(){
+  const u=S.user;
+  const sh=openSheet(`<div class="shead"><div class="avatar" style="width:52px;height:52px;font-size:18px">${esc(initials(u.nombre))}</div><div class="t"><h2>${esc(u.nombre)}</h2><div style="color:var(--muted);font-size:13.5px">@${esc(u.usuario)} · ${esc(ROLTXT[u.rol]||"Vecino")}</div><div style="color:var(--muted);font-size:13.5px">${esc(u.calle)} ${esc(u.casa)}${u.telefono?" · "+esc(u.telefono):""}</div></div>${xBtn}</div>
+    <div class="list">
+      <button class="li" type="button" id="aMine"><span class="b"><span class="p">Mis reportes</span></span></button>
+      <button class="li" type="button" id="aPerfil"><span class="b"><span class="p">Editar mis datos</span><span class="s" style="display:block">Nombre, calle, casa y teléfono</span></span></button>
+      <button class="li" type="button" id="aPw"><span class="b"><span class="p">Cambiar mi contraseña</span></span></button>
+      ${isStaff()?`<button class="li" type="button" id="aPend"><span class="b"><span class="p">Reportes nuevos</span><span class="s" style="display:block">De todas las secciones</span></span></button>`:""}
+      ${isComite()?`<button class="li" type="button" id="aUsers"><span class="b"><span class="p">Usuarios</span><span class="s" style="display:block">Roles, bloqueos y restablecer contraseñas</span></span></button>
+      <button class="li" type="button" id="aLog"><span class="b"><span class="p">Bitácora de actividad</span><span class="s" style="display:block">Quién hizo qué y cuándo</span></span></button>
+      <button class="li" type="button" id="aXls"><span class="b"><span class="p">Descargar todo en Excel</span><span class="s" style="display:block">Una hoja por sección</span></span></button>
+      <button class="li" type="button" id="aClave"><span class="b"><span class="p">Cambiar la clave del comité</span></span></button>`:""}
+      ${!isComite()?`<button class="li" type="button" id="aComite"><span class="b"><span class="p">Soy del comité</span><span class="s" style="display:block">Entra con la clave del comité</span></span></button>`:""}
+      <button class="li" type="button" id="aOut"><span class="b"><span class="p" style="color:var(--rep)">Cerrar sesión</span></span></button>
+    </div>`);
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on("aMine",openMine); on("aPerfil",editPerfil); on("aPw",changePw); on("aPend",()=>openPendientes("")); on("aUsers",openUsers); on("aLog",openLog);
+  on("aXls",downloadAll); on("aClave",changeClaveComite); on("aComite",hacermeComite); on("aOut",()=>{ logout(); });
+}
+const initials = n=>String(n||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("")||"?";
+function formModal(title,desc,fields,submitTxt,onSubmit){
+  const m=modal(`<form autocomplete="off" style="display:grid;gap:12px"><h3>${esc(title)}</h3>${desc?`<p>${desc}</p>`:""}${fields}<div class="hint err" id="mErr" hidden></div><div class="row"><button type="button" class="btn" id="mNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto">${esc(submitTxt)}</button></div></form>`);
+  m.querySelector("#mNo").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); const er=m.querySelector("#mErr"); er.hidden=true; const b=m.querySelector('[type="submit"]'); b.disabled=true;
+    try{ await onSubmit(m); m.remove(); }catch(e){ er.textContent=e.msg||errTxt(e); er.hidden=false; b.disabled=false; } };
+  setTimeout(()=>{ try{ m.querySelector("input").focus(); }catch(e){} },50); return m;
+}
+function editPerfil(){ const u=S.user;
+  formModal("Editar mis datos","",`<label>Nombre completo<input id="pN" value="${esc(u.nombre)}" maxlength="80" required></label><div class="row2"><label>Calle<input id="pC" list="calles" value="${esc(u.calle)}" maxlength="80" required></label><label>Número de casa<input id="pH" value="${esc(u.casa)}" maxlength="20" required></label></div><label>Teléfono (opcional)<input id="pT" type="tel" value="${esc(u.telefono)}" maxlength="20"></label>`,"Guardar",
+    async m=>{ const r=await api("perfil",{nombre:m.querySelector("#pN").value,calle:m.querySelector("#pC").value,casa:m.querySelector("#pH").value,telefono:m.querySelector("#pT").value}); setSession(S.token,r.user); toast("Datos guardados"); openAccount(); renderHome(); }); }
+function changePw(){
+  formModal("Cambiar mi contraseña","",`<input id="pw0" type="password" autocomplete="current-password" placeholder="Contraseña actual" required><input id="pw1" type="password" autocomplete="new-password" placeholder="Nueva contraseña" required minlength="6"><input id="pw2" type="password" autocomplete="new-password" placeholder="Repite la nueva contraseña" required minlength="6">`,"Cambiar",
+    async m=>{ const a=m.querySelector("#pw1").value; if(a!==m.querySelector("#pw2").value) throw {msg:"Las contraseñas nuevas no coinciden."}; await api("cambiarPassword",{actual:m.querySelector("#pw0").value,nueva:a}); toast("Contraseña cambiada"); }); }
+function hacermeComite(){
+  formModal("Soy del comité","Escribe la <b>clave del comité</b>. Tu cuenta quedará como comité y podrás dar seguimiento a todos los reportes.",`<input id="ck" type="password" autocomplete="off" placeholder="Clave del comité" required autocapitalize="off">`,"Entrar",
+    async m=>{ const r=await api("hacermeComite",{clave:m.querySelector("#ck").value}); setSession(S.token,r.user); toast("Listo, ya estás como comité"); await refresh(); setCat(cat,true); openAccount(); }); }
+function changeClaveComite(){
+  formModal("Cambiar la clave del comité","Es la clave que usan los integrantes del comité para que su cuenta quede como comité. Usa al menos 6 caracteres.",`<input id="nk1" type="password" autocomplete="new-password" placeholder="Nueva clave" required minlength="6"><input id="nk2" type="password" autocomplete="new-password" placeholder="Repite la nueva clave" required minlength="6">`,"Cambiar",
+    async m=>{ const a=m.querySelector("#nk1").value; if(a!==m.querySelector("#nk2").value) throw {msg:"Las claves no coinciden."}; await api("cambiarClaveComite",{nueva:a}); toast("Clave del comité cambiada"); }); }
+async function openUsers(){
+  const sh=openSheet(`<div class="shead"><div class="t"><h2>Usuarios</h2><div style="color:var(--muted);font-size:13px">Cargando…</div></div>${xBtn}</div>`);
+  let list; try{ list=(await api("usuarios")).usuarios; }catch(e){ sh.querySelector(".t div").textContent=errTxt(e); return; }
+  let q="";
+  const render=()=>{ const rows=list.filter(x=>!q||norm(x.nombre+" "+x.usuario+" "+x.calle+" "+x.casa).includes(norm(q))).sort((a,b)=>(a.rol==="vecino")-(b.rol==="vecino")||String(a.nombre).localeCompare(String(b.nombre)));
+    const by=r=>list.filter(x=>x.rol===r).length;
+    const sh=openSheet(`<div class="shead"><div class="t"><h2>Usuarios</h2><div style="color:var(--muted);font-size:13px">${list.length} cuentas · ${by("comite")} comité · ${by("operador")} operadores</div></div>${xBtn}</div>
+      <div class="srow" style="margin-bottom:8px"><input id="uq" type="search" placeholder="Buscar por nombre, usuario o casa" value="${esc(q)}" autocomplete="off"></div>
+      <div class="list ulist">${rows.map(x=>`<div class="li" data-u="${esc(x.usuario)}"><span class="avatar" style="width:30px;height:30px;font-size:11px">${esc(initials(x.nombre))}</span><span class="b"><span class="p">${esc(x.nombre)}${x.estado==="bloqueado"?' <span class="pill" style="background:var(--rep)">Bloqueado</span>':""}</span><span class="s" style="display:block">@${esc(x.usuario)} · ${esc(x.calle)} ${esc(x.casa)}${x.telefono?" · "+esc(x.telefono):""}</span></span>
+        <div class="ua"><select data-a="rol" aria-label="Rol">${Object.entries(ROLTXT).map(([k,t])=>`<option value="${k}"${x.rol===k?" selected":""}>${k==="operador"?"Operador":t}</option>`).join("")}</select>
+          <button type="button" class="btn" data-a="reset">Restablecer contraseña</button><button type="button" class="btn${x.estado==="bloqueado"?"":" danger"}" data-a="block">${x.estado==="bloqueado"?"Desbloquear":"Bloquear"}</button></div></div>`).join("")||'<div class="empty">Sin resultados.</div>'}</div>`);
+    const uq=$("uq"); uq.oninput=()=>{ q=uq.value.trim(); render(); const n=$("uq"); n.focus(); try{ n.setSelectionRange(n.value.length,n.value.length); }catch(e){} };
+    sh.querySelectorAll(".ulist .li").forEach(d=>{ const x=list.find(y=>y.usuario===d.dataset.u);
+      d.querySelector('[data-a="rol"]').onchange=async ev=>{ const v=ev.target.value; if(await guard(()=>api("usuarioCambiar",{usuario:x.usuario,rol:v}),`${x.nombre}: ${ROLTXT[v]}`)) x.rol=v; render(); };
+      d.querySelector('[data-a="block"]').onclick=async()=>{ const v=x.estado==="bloqueado"?"activo":"bloqueado"; if(await guard(()=>api("usuarioCambiar",{usuario:x.usuario,estado:v}),v==="bloqueado"?`${x.nombre} bloqueado`:`${x.nombre} desbloqueado`)) x.estado=v; render(); };
+      d.querySelector('[data-a="reset"]').onclick=async()=>{ const r=await guard(()=>api("usuarioReset",{usuario:x.usuario}),null); if(!r) return;
+        const m=modal(`<h3>Contraseña temporal</h3><p>Dásela a <b>${esc(x.nombre)}</b> (@${esc(x.usuario)}). Con ella entra y luego la cambia en «Cambiar mi contraseña».</p><div class="plate" style="font-size:24px;letter-spacing:.14em;justify-self:center">${esc(r.temporal)}</div><div class="row"><button type="button" class="btn" id="tCopy">Copiar</button><button type="button" class="btn primary" style="flex:0 0 auto" id="tOk">Listo</button></div>`);
+        m.querySelector("#tOk").onclick=()=>m.remove(); m.querySelector("#tCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(r.temporal); toast("Copiada"); }catch(e){ toast("No se pudo copiar"); } }; }; });
+  };
+  render();
+}
+async function openLog(){
+  const sh=openSheet(`<div class="shead"><div class="t"><h2>Bitácora de actividad</h2><div style="color:var(--muted);font-size:13px">Cargando…</div></div>${xBtn}</div>`);
+  let b; try{ b=(await api("bitacora")).bitacora; }catch(e){ sh.querySelector(".t div").textContent=errTxt(e); return; }
+  openSheet(`<div class="shead"><div class="t"><h2>Bitácora de actividad</h2><div style="color:var(--muted);font-size:13px">Últimos ${b.length} movimientos</div></div>${xBtn}</div>
+    <div class="list blog">${b.map(x=>`<div class="li"><span class="b"><span class="p">${esc(x.accion)}</span><span class="s" style="display:block;white-space:normal">${esc(x.nombre||x.usuario)}${x.detalle?" · "+esc(x.detalle):""}</span></span><time>${esc(fechaHora(x.f))}</time></div>`).join("")||'<div class="empty">Sin movimientos.</div>'}</div>`);
+}
+
+// ---------- Excel ----------
+function loadXLSX(){ return new Promise((res,rej)=>{ if(window.XLSX) return res(window.XLSX); const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload=()=>res(window.XLSX); sc.onerror=rej; document.head.appendChild(sc); }); }
+const sheetItems = rows=>rows.map(p=>({"#":p.num,[CATS[p.categoria].code]:codigo(p),"Cómo está":p.falla,"Seguimiento":labelOf(p),"Calle":p.ubicacion||"","Entre calles":p.entre||"","Cuadrilla":p.cuadrilla||"","Reportes abiertos":openReps(p.id).length,"Notas":p.notas||"","Actualizado":p.actualizado?fechaHora(p.actualizado):"","Latitud":p.lat,"Longitud":p.lon,"Google Maps":gmaps(p.lat,p.lon)}));
+const sheetReps = rows=>rows.map(r=>{ const it=r.itemId?items.find(p=>p.id===r.itemId):null; return {"Folio":r.rid,"Fecha":fechaHora(r.fecha),"Sección":CATS[r.categoria].n,"Qué pasa":r.tipo,"Estado":EST[r.estado][0],"Desde":r.fechaEstado?fecha(r.fechaEstado):"",[CATS[r.categoria].inv?CATS[r.categoria].Item:"Elemento"]:it?codigo(it):(r.itemCodigo||""),"Comentario":r.comentario||"","Reportó":r.nombre||"","Casa":r.casa||"","Teléfono":r.telefono||"","Confirmaciones":r.nApoyos||0,"Cuadrilla":r.cuadrilla||"","Notas del comité":r.notas||"","Latitud":r.lat,"Longitud":r.lon,"Google Maps":gmaps(r.lat,r.lon)}; });
+async function downloadXlsx(sheets,name){
+  toast("Preparando Excel…"); let X; try{ X=await loadXLSX(); }catch(e){ toast("No se pudo cargar el generador de Excel. Revisa tu internet."); return; }
+  const wb=X.utils.book_new(); for(const [n,rows] of Object.entries(sheets)){ const ws=X.utils.json_to_sheet(rows.length?rows:[{"Sin datos":""}]); const keys=Object.keys(rows[0]||{"Sin datos":""}); ws["!cols"]=keys.map(k=>({wch:Math.min(40,Math.max(8,k.length+2,...rows.slice(0,200).map(r=>String(r[k]??"").length)))})); X.utils.book_append_sheet(wb,ws,n.slice(0,31)); }
+  X.writeFile(wb,`${name}.xlsx`); toast("Excel descargado");
+}
+function downloadAll(){ const sh={}; ORDER.forEach(k=>{ const c=CATS[k]; if(c.inv) sh[c.n]=sheetItems(catItems(k)); }); sh["Reportes"]=sheetReps([...reps].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)))); downloadXlsx(sh,`Trinidad de las Huertas ${fecha(nowISO()).replace(/\//g,"-")}`); }
+
+// ---------- Importar la página anterior ----------
+function importar(){
+  formModal("Traer los postes de la página anterior","Copia los postes (con fotos, historial y números) de la página <b>postes-trinidad</b>. Para traer también los reportes pendientes, escribe la clave que usaban en esa página; si la dejas vacía solo se copian los postes.",`<input id="oc" type="password" autocomplete="off" placeholder="Clave de la página anterior (opcional)" autocapitalize="off">`,"Traer postes",
+    async m=>{ toast("Leyendo la página anterior…"); let postes, rr=[];
+      try{ const j=await (await fetch(OLD_API+"?t="+Date.now(),{cache:"no-store"})).json(); postes=j.postes||[]; }catch(e){ throw {msg:"No se pudo leer la página anterior."}; }
+      const cl=m.querySelector("#oc").value; if(cl){ try{ const j=await (await fetch(OLD_API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"listReportes",clave:cl})})).json(); if(j.ok) rr=(j.reportes||[]).filter(r=>(r.estado||"abierto")==="abierto"); else throw 0; }catch(e){ throw {msg:"La clave de la página anterior no funcionó."}; } }
+      const r=await api("importar",{items:postes,reportes:rr}); await refresh(); toast(`Listo: ${r.items} postes y ${r.reportes} reportes copiados`); renderHome(); }); }
+
+// ---------- Ubicación ----------
+function locate(){ return new Promise(res=>{
+  if(!navigator.geolocation) return res({ok:false,msg:"Este navegador no puede usar el GPS."});
+  navigator.geolocation.getCurrentPosition(p=>res({ok:true,lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy||30}),
+    e=>res({ok:false,msg:e.code===1?"No diste permiso de ubicación. Actívalo en tu navegador o toca el lugar en el croquis.":"No se pudo obtener tu ubicación. Toca el lugar en el croquis."}),{enableHighAccuracy:true,timeout:15000,maximumAge:10000}); }); }
+$("btnMe").onclick=()=>{ if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; myPos=null; $("btnMe").setAttribute("aria-pressed","false"); drawPins(); return; }
+  if(!navigator.geolocation){ toast("Este navegador no puede usar el GPS."); return; } let first=true; toast("Buscando tu ubicación…");
+  watchId=navigator.geolocation.watchPosition(p=>{ myPos={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy||30}; $("btnMe").setAttribute("aria-pressed","true"); if(first){ first=false; center(myPos.lat,myPos.lon,2.5,0.45); } else drawPins(); },
+    e=>{ toast(e.code===1?"No diste permiso de ubicación.":"No se pudo obtener tu ubicación."); if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; },{enableHighAccuracy:true,maximumAge:5000}); };
+
+// ---------- Datos ----------
+let refreshing=null;
+async function refresh(){
+  if(!S.token) return; if(refreshing) return refreshing;
+  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat));
+      if(j.user&&(j.user.rol!==S.user.rol||j.user.estado!==S.user.estado)){ setSession(S.token,j.user); if(cat) fabs(); }
+      loaded=true; $("dbBanner").hidden=true;
+      if(!cat) renderHome(); else { summary(); if(!(gest&&gest.type==="pin"&&gest.moved)) drawPins(); } renderCats(); $("btnMe2").textContent=initials(S.user.nombre);
+    }catch(e){ if(e.code==="sesion") return; const b=$("dbBanner"); b.innerHTML='<span class="msg">No se pudo conectar con la hoja de datos. Revisa tu internet.</span>'; b.hidden=!cat; if(!loaded&&!cat) $("home").innerHTML='<div class="loading">Sin conexión. Revisa tu internet y vuelve a abrir la app.</div>'; }
+    finally{ refreshing=null; } })();
+  return refreshing;
+}
+setInterval(()=>{ if(S.token&&!document.hidden&&!(gest&&gest.type==="pin")) refresh(); },25000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&S.token) refresh(); });
+window.addEventListener("resize",()=>{ if(cat) draw(); });
+
+// ---------- Acceso ----------
+function showAuth(){ $("auth").hidden=false; }
+function authMsg(t){ const e=$("inErr"); e.textContent=t; e.hidden=false; }
+function setTab(up){ $("tabIn").setAttribute("aria-selected",String(!up)); $("tabUp").setAttribute("aria-selected",String(up)); $("fIn").hidden=up; $("fUp").hidden=!up; $("inErr").hidden=true; $("upErr").hidden=true; }
+$("tabIn").onclick=()=>setTab(false); $("tabUp").onclick=()=>setTab(true);
+document.querySelectorAll(".eye").forEach(b=>b.onclick=()=>{ const i=b.previousElementSibling; i.type=i.type==="password"?"text":"password"; b.textContent=i.type==="password"?"Ver":"Ocultar"; });
+function enterApp(){ $("auth").hidden=true; $("app").hidden=false; $("btnMe2").textContent=initials(S.user.nombre); const h=(location.hash||"").slice(1); setCat(CATS[h]||h==="todo"?h:""); refresh(); }
+$("fIn").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelector('[type="submit"]'); b.disabled=true; $("inErr").hidden=true;
+  try{ const r=await api("login",{usuario:$("inU").value.trim(),password:$("inP").value}); setSession(r.token,r.user); $("inP").value=""; enterApp(); }
+  catch(e){ authMsg(errTxt(e)); } finally{ b.disabled=false; } };
+$("fUp").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelector('[type="submit"]'); b.disabled=true; const er=$("upErr"); er.hidden=true;
+  const usuario=$("upU").value.trim().toLowerCase();
+  if(!/^[a-z0-9._-]{3,30}$/.test(usuario)){ er.textContent=ERR.usuario_invalido; er.hidden=false; b.disabled=false; return; }
+  try{ const r=await api("registro",{usuario,password:$("upP").value,nombre:$("upN").value,calle:$("upC").value,casa:$("upH").value,telefono:$("upT").value}); setSession(r.token,r.user); $("upP").value=""; enterApp(); toast(`¡Bienvenido, ${String(r.user.nombre).split(" ")[0]}! Ya puedes reportar.`); }
+  catch(e){ er.textContent=errTxt(e); er.hidden=false; } finally{ b.disabled=false; } };
+
+if(!API_URL||API_URL.startsWith("@@")){ showAuth(); authMsg("Falta conectar la hoja de datos (API_URL)."); }
+else if(S.token&&S.user) enterApp(); else showAuth();
+})();
+</script>
+</body>
+</html>
