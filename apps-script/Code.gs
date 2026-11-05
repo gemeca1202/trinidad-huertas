@@ -17,6 +17,9 @@ const H_LUGARES = ['id', 'clase', 'nombre', 'giro', 'estado', 'dueno', 'lat', 'l
 const H_PEDIDOS = ['pid', 'fecha', 'lugarId', 'lugarNombre', 'cliente', 'nombre', 'casa', 'telefono', 'items', 'total', 'entrega', 'nota',
   'estado', 'fechaEstado', 'dlat', 'dlon', 'historial'];
 const ESTADOS_PED = ['recibido', 'preparando', 'camino', 'entregado', 'cancelado'];
+const H_CONTENIDO = ['clave', 'data', 'actualizado', 'por'];
+const CONTENIDOS = ['comite', 'reglamentos', 'numeros'];
+const MIMES = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' };
 const CATEGORIAS = ['luminarias', 'drenaje', 'baches', 'fugas', 'apagones', 'basura', 'poda'];
 const INVENTARIO = ['luminarias', 'drenaje'];
 const ROLES = ['vecino', 'operador', 'comite'];
@@ -49,6 +52,11 @@ const hReportes_ = () => hoja_('Reportes', H_REPORTES);
 const hBitacora_ = () => hoja_('Bitácora', H_BITACORA);
 const hLugares_ = () => hoja_('Lugares', H_LUGARES);
 const hPedidos_ = () => hoja_('Pedidos', H_PEDIDOS);
+const hContenido_ = () => hoja_('Contenido', H_CONTENIDO);
+function contenido_() {
+  const o = {}; filas_(hContenido_(), H_CONTENIDO).forEach(r => { try { o[r.clave] = JSON.parse(r.data || 'null'); } catch (e) { } });
+  return o;
+}
 
 function filas_(sh, headers) {
   const n = sh.getLastRow() - 1; if (n <= 0) return [];
@@ -170,7 +178,7 @@ function datos_(u) {
     const abierto = ['recibido', 'preparando', 'camino'].indexOf(p.estado) >= 0;
     return abierto || new Date(p.fecha).getTime() > hace60;
   }).map(p => { p.soyCliente = normUsuario_(p.cliente) === normUsuario_(u.usuario); p.soyNegocio = !!mios[p.lugarId]; delete p._row; return p; });
-  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos };
+  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos, contenido: contenido_() };
 }
 function lugarDe_(r) {
   let d = {}; try { d = JSON.parse(r.data || '{}'); } catch (e) { }
@@ -537,6 +545,26 @@ function atender_(req) {
       return { ok: true };
     } finally { lock.releaseLock(); }
   }
+  if (a === 'contenidoGuardar') {
+    const clave = String(req.clave); if (CONTENIDOS.indexOf(clave) < 0) return { ok: false, error: 'clave_contenido' };
+    const txt = JSON.stringify(req.data === undefined ? null : req.data); if (txt.length > 45000) return { ok: false, error: 'lleno' };
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hContenido_(); const fila = filas_(sh, H_CONTENIDO).find(r => r.clave === clave);
+      escribirFila_(sh, H_CONTENIDO, fila ? fila._row : null, { clave: clave, data: txt, actualizado: ahora_(), por: u.usuario });
+      bitacora_(u, 'Actualizó ' + ({ comite: 'Conoce a tu comité', reglamentos: 'Reglamentos', numeros: 'Números oficiales' })[clave], '');
+      return { ok: true };
+    } finally { lock.releaseLock(); }
+  }
+  if (a === 'archivoSubir') {
+    const mime = String(req.mime || ''); if (!MIMES[mime]) return { ok: false, error: 'tipo_archivo' };
+    if (!req.data || req.data.length > 14e6) return { ok: false, error: 'foto' };
+    const nombre = limpiar_(req.nombre, 80).replace(/[^\w .()-]/g, '') || 'archivo';
+    const blob = Utilities.newBlob(Utilities.base64Decode(req.data), mime, nombre.replace(/\.\w+$/, '') + '.' + MIMES[mime]);
+    const f = carpetaFotos_().createFile(blob); f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    bitacora_(u, 'Subió archivo', nombre);
+    return { ok: true, id: f.getId() };
+  }
   if (a === 'usuarios') return { ok: true, usuarios: usuarios_().map(x => Object.assign(publicoUsuario_(x), { creado: String(x.creado), ultimoAcceso: String(x.ultimoAcceso) })) };
   if (a === 'usuarioCambiar') {
     const x = buscarUsuario_(req.usuario); if (!x) return { ok: false, error: 'no_existe' };
@@ -602,7 +630,7 @@ function atender_(req) {
 
 /** Ejecutar una vez desde el editor: crea la hoja, las pestañas y la carpeta de fotos. */
 function instalar() {
-  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); hLugares_(); hPedidos_(); carpetaFotos_(); secreto_();
+  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); hLugares_(); hPedidos_(); hContenido_(); carpetaFotos_(); secreto_();
   if (!PROPS.getProperty('CLAVE')) PROPS.setProperty('CLAVE', 'CAMBIAR-ESTA-CLAVE');
   Logger.log('Hoja: ' + ss_().getUrl());
 }

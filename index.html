@@ -295,6 +295,59 @@ body{touch-action:auto}
 .pwrow{position:relative}
 .pwrow button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--accent);font:600 12.5px var(--body);cursor:pointer;padding:6px}
 .loading{display:grid;place-items:center;height:100%;color:var(--muted);font:600 14px var(--body)}
+/* Inicio y páginas */
+.hero{display:flex;gap:14px;align-items:center;background:var(--head);color:var(--head-ink);border-radius:18px;padding:16px;border-bottom:4px solid var(--head-gold);box-shadow:var(--shadow)}
+.hero .seal{width:64px;height:64px;flex:none}
+.hero .seal img{width:60px;height:60px}
+.hero .eyebrow{font:700 11px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--head-gold)}
+.hero h2{font:800 clamp(18px,5vw,24px) var(--display);margin:2px 0 4px;text-wrap:balance;line-height:1.15}
+.hero p{margin:0;font-size:14px;opacity:.92;line-height:1.35}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:640px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{position:relative;display:grid;gap:6px;align-content:start;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;padding:14px;cursor:pointer;font:inherit;min-height:132px}
+.tile .ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;color:#fff}
+.tile .ic svg{width:24px;height:24px}
+.tile .tt{font:800 15.5px var(--display);line-height:1.15;text-wrap:balance}
+.tile .td{font-size:12.5px;color:var(--muted);line-height:1.3}
+.tile .cnt{position:absolute;top:10px;right:10px;font:800 12px var(--display);background:var(--rep);color:#fff;border-radius:999px;padding:2px 8px}
+.tile:first-child{border-color:var(--accent);box-shadow:0 0 0 2px var(--head-gold)}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.person{display:grid;gap:4px;justify-items:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 10px}
+.person img,.person .ph{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--head-gold);background:var(--bg)}
+.person .ph{display:grid;place-items:center;font:800 26px var(--display);color:var(--accent)}
+.person .pc{font:700 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-top:4px}
+.person .pn{font:800 14.5px var(--display);line-height:1.2;text-wrap:balance}
+.person .pd{font-size:12.5px;color:var(--muted)}
+.person .pa .btn{padding:7px 12px;font-size:13px}
+.docs{display:grid;gap:10px}
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 12px}
+.doc summary{display:flex;gap:10px;align-items:center;padding:10px 0;cursor:pointer;list-style:none}
+.doc summary::-webkit-details-marker{display:none}
+.doc summary .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.doc summary .ic svg{width:20px;height:20px}
+.doc summary .b{flex:1;min-width:0;display:grid}
+.doc summary .p{font:800 15px var(--display)}
+.doc summary .s{font-size:12.5px;color:var(--muted)}
+.doc summary::after{content:"▸";color:var(--accent);font-size:14px}
+.doc[open] summary::after{content:"▾"}
+.docbody{display:grid;gap:10px;padding:0 0 12px;border-top:1px solid var(--line);padding-top:10px}
+.doctext{white-space:pre-wrap;font-size:15px;line-height:1.5;max-height:60vh;overflow:auto}
+.nums{display:grid;gap:10px}
+.num{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.num .nh{display:flex;gap:10px;align-items:center}
+.num .nh .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.num .nh .ic svg{width:19px;height:19px}
+.num .nh .b{display:grid}
+.num .nh .p{font:800 15.5px var(--display)}
+.num .nh .s{font-size:13px;color:var(--muted)}
+.num .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.num .biz-actions{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.medit .mr.mr2{grid-template-columns:1fr 36px;grid-template-areas:"n x" "c c" "t t" "d d"}
+.medit .mr.mr2 [data-f="n"]{grid-area:n}.medit .mr.mr2 .x2{grid-area:x}.medit .mr.mr2 [data-f="c"]{grid-area:c}.medit .mr.mr2 [data-f="t"]{grid-area:t}.medit .mr.mr2 textarea{grid-area:d;grid-column:auto}
+.medit .mr.mr2{border:1px solid var(--line);border-radius:12px;padding:8px}
+.medit .mr.mr3{grid-template-columns:1fr 1.4fr 36px}
+.secs{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.secs label.check{font-size:14px}
 /* Negocios y lugares */
 .vin{cursor:pointer}
 .vin rect.bg{fill:var(--panel);stroke:var(--accent);stroke-width:1.5}
@@ -497,7 +550,13 @@ Object.assign(ICON,{
   servicios:'<path d="M14.5 6.5a4 4 0 0 0-5.3 5.3L3 18l3 3 6.2-6.2a4 4 0 0 0 5.3-5.3l-2.6 2.6-2.4-.6-.6-2.4z"/>',
   casa:'<path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-5h4v5"/>',
   moto:'<circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/><path d="M6 16h5l3-6h3l1 6M14 10l-2-3H9"/>',
-  pedido:'<path d="M5 7h14l-1.2 12.5a2 2 0 0 1-2 1.5H8.2a2 2 0 0 1-2-1.5z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/>'
+  pedido:'<path d="M5 7h14l-1.2 12.5a2 2 0 0 1-2 1.5H8.2a2 2 0 0 1-2-1.5z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/>',
+  reportar:'<path d="M5 21V4h11l-1.5 4L16 12H5"/>',
+  buscar:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/>',
+  comite:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.8-.4 5 1.8 5 4.8"/>',
+  reglamento:'<path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19M9 12h7M9 15.5h7M9 19h4"/>',
+  archivo:'<path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19"/>',
+  telefono:'<path d="M5 3.5h3.5l1.8 4.6-2.3 1.4a11 11 0 0 0 6.5 6.5l1.4-2.3 4.6 1.8V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/>'
 });
 const svgI = (k,attrs='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${ICON[k]||""}</svg>`;
 const CATS = {
@@ -738,25 +797,34 @@ function modal(html,cls){ const m=document.createElement("div"); m.className="mo
   m.addEventListener("pointerdown",e=>{ if(e.target===m) m.remove(); }); return m; }
 
 // ---------- Navegación ----------
+// Páginas (sin mapa) y su título
+const PAGES = {"":"Trinidad de las Huertas", reportes:"Reportar un problema", buscar:"Seguimiento de reportes", comite:"Conoce a tu comité", reglamentos:"Reglamentos", numeros:"Números oficiales"};
+const isPage = k=>Object.prototype.hasOwnProperty.call(PAGES,k);
+const isReportArea = k=>k==="reportes"||k==="buscar"||k==="todo"||!!CATS[k];
+const parentOf = k=>(k==="todo"||CATS[k])?"reportes":"";
 function renderCats(){
   const chip=(k,t,icon,n)=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${cat===k}">${icon?svgI(icon):""}${t}${n?`<span class="cnt">${n}</span>`:""}</button>`;
   const nLug = pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length + (isComite()?lugares.filter(l=>l.estado==="pendiente").length:0);
-  $("cats").innerHTML = chip("","Inicio","") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("") + chip("lugares","Negocios y lugares","lugares",nLug);
+  const nRep = isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
+  $("cats").innerHTML = isReportArea(cat)
+    ? chip("","Inicio","") + chip("reportes","Reportar","reportar") + chip("buscar","Seguimiento","buscar") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("")
+    : chip("","Inicio","") + chip("reportes","Reportar un problema","reportar",nRep) + chip("buscar","Seguimiento","buscar") + chip("lugares","Negocios y lugares","lugares",nLug) + chip("numeros","Números oficiales","telefono") + chip("comite","Comité","comite") + chip("reglamentos","Reglamentos","reglamento");
   $("cats").querySelectorAll(".chip").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
   const a=$("cats").querySelector('[aria-pressed="true"]'); if(a&&a.scrollIntoView) a.scrollIntoView({inline:"nearest",block:"nearest"});
 }
 function setCat(k,keepView){
   if(k!=="lugares") stopTrack();
   closeSheet(); setPlacing(null); cat=k; selected=null;
-  const home=!k; $("home").hidden=!home; $("mapView").hidden=home; $("btnBack").hidden=home; $("topSeal").hidden=!home; $("btnList").hidden=home;
+  const page=isPage(k), home=k==="";
+  $("home").hidden=!page; $("mapView").hidden=page; $("btnBack").hidden=home; $("topSeal").hidden=!home; $("btnList").hidden=page;
   $("topEye").textContent = home?"Comité Vecinal":"Trinidad de las Huertas";
-  $("topTitle").textContent = home?"Trinidad de las Huertas":(k==="todo"?"Mapa general":k==="lugares"?"Negocios y lugares":CATS[k].n);
+  $("topTitle").textContent = page?PAGES[k]:(k==="todo"?"Mapa general":k==="lugares"?"Negocios y lugares":CATS[k].n);
   renderCats();
-  if(home){ renderHome(); $("home").scrollTop=0; }
+  if(page){ renderPage(); $("home").scrollTop=0; }
   else { summary(); legend(); fabs(); if(!keepView) requestAnimationFrame(fit); else draw(); }
   try{ history.replaceState(null,"",k?"#"+k:location.pathname+location.search); }catch(e){}
 }
-$("btnBack").onclick=()=>setCat("");
+$("btnBack").onclick=()=>setCat(parentOf(cat));
 $("btnFit").onclick=()=>fit();
 $("btnList").onclick=()=>openList();
 $("btnMe2").onclick=()=>openAccount();
@@ -785,7 +853,7 @@ function legend(){
     : c.inv ? Object.values(c.tipos).map(([t,col])=>row(col,t)).join("")
     : row(EST.nuevo[1],"Nuevo")+row(EST.proceso[1],"En atención")+row(EST.atendido[1],"Atendido");
 }
-function summary(){
+function summary(){ if(isPage(cat)) return;
   const st=(n,t,col)=>`<span class="stat">${col?`<i style="background:${col}"></i>`:""}<b>${n}</b>${t}</span>`;
   let h="";
   if(cat==="lugares"){ const biz=lugares.filter(l=>l.clase==="negocio"&&l.estado==="aprobado"); const pend=lugares.filter(l=>l.estado==="pendiente"); const nPed=pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length;
@@ -801,7 +869,9 @@ function summary(){
         : alertH+`<span class="stat muted">${isComite()?`Aún no hay ${c.item}s. Toca «Nuevo ${c.item}» para agregar el primero.`:`Aún no hay ${c.item}s registrados. Puedes reportar uno.`}</span>`;
     } else { const rr=catReps(cat); h=alertH+st(rr.filter(r=>r.estado==="nuevo").length,"nuevos",EST.nuevo[1])+st(rr.filter(r=>r.estado==="proceso").length,"en atención",EST.proceso[1])+st(rr.filter(r=>r.estado==="atendido").length,"atendidos",EST.atendido[1]); }
   }
+  if(CATS[cat]&&numerosDe(cat).length) h+=`<button type="button" class="stat" id="openNums" style="cursor:pointer"><i style="background:#b3261e"></i>Números para reportar</button>`;
   $("summary").innerHTML=h; const o=$("openRep"); if(o) o.onclick=()=>openPendientes(cat==="todo"?"":cat);
+  const on=$("openNums"); if(on) on.onclick=()=>openNumerosSheet(cat);
 }
 function setPlacing(mode){
   placing=mode; $("placeBanner").hidden=!mode; if(!mode) return;
@@ -823,48 +893,217 @@ function chooseCat(after){
   m.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{ m.remove(); setCat(b.dataset.k); setTimeout(()=>setPlacing("report"),60); });
 }
 
-// ---------- Inicio ----------
-function renderHome(){
+// ---------- Páginas ----------
+let contenido = {};
+const DEF_COMITE = {gestion:"Gestión 2026-2027", mensaje:"", integrantes:[
+  {nombre:"Lic. Miguel Omar Lazcano Cárdenas",cargo:"Presidente"},{nombre:"C.P. Concepción Quintas Canseco",cargo:"Secretaria"},
+  {nombre:"Mtra. Patricia Concepción Aguilar Medina",cargo:"Tesorera"},{nombre:"Lic. Enrique de Jesús Segura Santiago",cargo:"Vocal 1"},{nombre:"Dra. Laura Flor Sosa López",cargo:"Vocal 2"}]};
+const DEF_REGLAS = [{id:"fracc",titulo:"Reglamento del fraccionamiento"},{id:"whatsapp",titulo:"Reglamento del grupo de WhatsApp"},{id:"seguridad",titulo:"Reglamento del grupo de seguridad"}];
+const DEF_NUMEROS = [{id:"n911",dependencia:"Emergencias",oficina:"Línea de emergencias",telefono:"911",horario:"24 horas",secciones:[]},
+  {id:"ncfe",dependencia:"CFE",oficina:"Reporte de fallas de luz",telefono:"071",horario:"24 horas",secciones:["apagones"]}];
+const getComite = ()=>contenido.comite||DEF_COMITE;
+const getReglas = ()=>Array.isArray(contenido.reglamentos)?contenido.reglamentos:DEF_REGLAS;
+const getNumeros = ()=>Array.isArray(contenido.numeros)?contenido.numeros:DEF_NUMEROS;
+const driveView = id=>`https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+const telHref = t=>"tel:"+String(t||"").replace(/[^\d+]/g,"");
+function renderPage(){
   const u=S.user; if(!u) return;
-  if(!loaded){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
-  const nNuevos=reps.filter(r=>r.estado==="nuevo").length;
-  const mine=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
-  const nPedNeg=pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length, nBizPend=lugares.filter(l=>l.estado==="pendiente").length;
-  const nBiz=lugares.filter(l=>l.clase==="negocio"&&l.estado==="aprobado").length;
-  const faltan=SUGERIDOS.filter(([n])=>!lugares.some(l=>l.clase==="clave"&&norm(l.nombre)===norm(n)));
+  if(!loaded&&cat!=="comite"&&cat!=="reglamentos"&&cat!=="numeros"){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
+  ({"":renderInicio, reportes:renderReportes, buscar:renderBuscar, comite:renderComite, reglamentos:renderReglamentos, numeros:renderNumeros})[cat]();
+  wireRepLi($("home"));
+  $("home").querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
+  $("home").querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>setCat(b.dataset.go));
+}
+const renderHome = ()=>{ if(isPage(cat)) renderPage(); };
+function tile(go,icon,col,t,d,badge){ return `<button type="button" class="tile" data-go="${go}"><span class="ic" style="background:${col}">${svgI(icon)}</span><span class="tt">${esc(t)}</span><span class="td">${esc(d)}</span>${badge?`<span class="cnt">${badge}</span>`:""}</button>`; }
+function renderInicio(){
+  const u=S.user;
+  const nNuevos=isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
+  const nPedNeg=pedidos.filter(p=>p.soyNegocio&&p.estado==="recibido").length, nBizPend=isComite()?lugares.filter(l=>l.estado==="pendiente").length:0;
+  const misAb=reps.filter(r=>r.mio&&isOpen(r)).length;
   const misPed=pedidos.filter(p=>p.soyCliente&&["recibido","preparando","camino"].includes(p.estado)).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const faltan=SUGERIDOS.filter(([n])=>!lugares.some(l=>l.clase==="clave"&&norm(l.nombre)===norm(n)));
+  $("home").innerHTML=`<div class="wrap">
+    <section class="hero"><div class="seal"><img alt="" src="seal.jpg"></div><div><div class="eyebrow">Bienvenidos a la app del</div><h2>Fraccionamiento Trinidad de las Huertas</h2>
+      <p>Hola, <b>${esc(String(u.nombre||"").split(" ")[0]||u.usuario)}</b> · ${esc(u.calle)} ${esc(u.casa)}${u.rol!=="vecino"?" · "+esc(ROLTXT[u.rol]):""}</p></div></section>
+    ${nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
+    ${nPedNeg?`<button type="button" class="alertcard" id="hPedNeg"><b>${nPedNeg}</b><span>${nPedNeg===1?"pedido nuevo en tu negocio":"pedidos nuevos en tu negocio"}</span></button>`:""}
+    ${nBizPend?`<button type="button" class="alertcard" id="hBizPend"><b>${nBizPend}</b><span>${nBizPend===1?"negocio por aprobar":"negocios por aprobar"}</span></button>`:""}
+    <div class="tiles">
+      ${tile("reportes","reportar","var(--accent)","Reportar un problema","Luminarias, drenaje, baches, fugas, apagones, basura y poda")}
+      ${tile("buscar","buscar","#2f6fd6","Seguimiento de reportes","Busca un reporte y mira cómo va",misAb?String(misAb):"")}
+      ${tile("lugares","lugares",BIZ_COL,"Negocios y lugares","Directorio, menús, pedidos y lugares clave")}
+      ${tile("numeros","telefono","#b3261e","Números oficiales","Teléfonos de dependencias para reportar")}
+      ${tile("comite","comite","var(--gold)","Conoce a tu comité","Quiénes integran el comité vecinal")}
+      ${tile("reglamentos","reglamento","#3f6779","Reglamentos","Fraccionamiento, grupo de WhatsApp y de seguridad")}
+    </div>
+    ${misPed.length?`<div class="h3">Mis pedidos en curso</div><div class="mine">${misPed.slice(0,3).map(pedLi).join("")}</div>`:""}
+    ${isComite()&&faltan.length?`<button type="button" class="alertcard" id="hClave"><span>Faltan lugares clave por ubicar: <b style="font:700 14.5px var(--body);color:var(--ink)">${esc(faltan.map(s=>s[0]).join(", "))}</b></span></button>`:""}
+    ${isComite()&&!catItems("luminarias").length?`<button type="button" class="alertcard" id="hImport"><span>Traer los postes de la página anterior (postes-trinidad)</span></button>`:""}
+    <div class="foot">Comité Vecinal · ${esc(getComite().gestion||"")} · Oaxaca de Juárez</div></div>`;
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on("hPend",()=>openPendientes("")); on("hPedNeg",()=>openPedidosNegocio()); on("hImport",()=>importar());
+  on("hBizPend",()=>{ setCat("lugares"); openDirectorio("pend"); }); on("hClave",()=>{ setCat("lugares"); chooseClave(); });
+}
+function renderReportes(){
+  const mine=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const nNuevos=isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
   const card=k=>{ const c=CATS[k], s=stat(k); let mt;
     if(c.inv){ mt = s.total ? `<div class="bar" style="--mcol:${s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)"}"><i style="width:${s.pct}%"></i></div><div class="mt ${s.bad?"bad":"good"}">${s.pct}% funciona · ${s.bad} con falla</div>` : `<div class="mt">Sin ${c.item}s registrados</div>`; }
     else mt = `<div class="mt ${s.abiertos?"bad":"good"}">${s.abiertos?`${s.abiertos} ${s.abiertos===1?"abierto":"abiertos"}`:"Sin reportes abiertos"}</div>`;
-    return `<button type="button" class="card" data-k="${k}"><span class="ic" style="background:${c.col}">${svgI(k)}</span><span class="nm">${esc(c.n)}</span><span class="ds">${esc(c.desc)}</span>${mt}</button>`; };
-  $("home").innerHTML = `<div class="wrap">
-    <div class="hello"><div class="hi">Hola, ${esc(String(u.nombre||"").split(" ")[0]||u.usuario)}</div><div class="sub">${esc(u.calle)} ${esc(u.casa)} · ${esc(ROLTXT[u.rol]||"Vecino")}</div></div>
-    <button type="button" class="bigreport" id="hReport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>Reportar un problema</button>
-    ${isStaff()&&nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
-    ${nPedNeg?`<button type="button" class="alertcard" id="hPedNeg"><b>${nPedNeg}</b><span>${nPedNeg===1?"pedido nuevo en tu negocio":"pedidos nuevos en tu negocio"}</span></button>`:""}
-    ${isComite()&&nBizPend?`<button type="button" class="alertcard" id="hBizPend"><b>${nBizPend}</b><span>${nBizPend===1?"negocio por aprobar":"negocios por aprobar"}</span></button>`:""}
-    ${isComite()&&faltan.length?`<button type="button" class="alertcard" id="hClave"><span>Faltan lugares clave por ubicar: <b style="font:700 14.5px var(--body);color:var(--ink)">${esc(faltan.map(s=>s[0]).join(", "))}</b></span></button>`:""}
-    ${misPed.length?`<div class="h3">Mis pedidos</div><div class="mine">${misPed.slice(0,3).map(pedLi).join("")}</div>`:""}
+    return `<button type="button" class="card" data-go="${k}"><span class="ic" style="background:${c.col}">${svgI(k)}</span><span class="nm">${esc(c.n)}</span><span class="ds">${esc(c.desc)}</span>${mt}</button>`; };
+  $("home").innerHTML=`<div class="wrap">
+    <button type="button" class="bigreport" id="hReport">${svgI("reportar")}Reportar un problema</button>
+    ${nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
     <div class="h3">Secciones</div>
     <div class="cards">${ORDER.map(card).join("")}
-      <button type="button" class="card" data-k="lugares"><span class="ic" style="background:${BIZ_COL}">${svgI("lugares")}</span><span class="nm">Negocios y lugares</span><span class="ds">Directorio, menús y pedidos a domicilio</span><span class="mt">${nBiz?`${nBiz} ${nBiz===1?"negocio":"negocios"}`:"Registra tu negocio"}</span></button>
-      <button type="button" class="card wide" data-k="todo"><span class="ic" style="background:var(--accent)">${svgI("todo")}</span><span><span class="nm" style="display:block">Mapa general</span><span class="ds">Todos los pendientes del fraccionamiento en un solo croquis</span></span></button></div>
+      <button type="button" class="card wide" data-go="todo"><span class="ic" style="background:var(--accent)">${svgI("todo")}</span><span><span class="nm" style="display:block">Mapa general</span><span class="ds">Todos los pendientes del fraccionamiento en un solo croquis</span></span></button></div>
     <div class="h3">Mis reportes</div>
-    ${mine.length?`<div class="mine">${mine.slice(0,5).map(repLi).join("")}</div>${mine.length>5?`<button type="button" class="linkbtn" id="hMine">Ver mis ${mine.length} reportes</button>`:""}`:`<div class="mine"><div class="empty">Aún no has hecho reportes. Cuando reportes algo, aquí verás cómo va.</div></div>`}
-    ${isComite()&&!catItems("luminarias").length?`<button type="button" class="alertcard" id="hImport"><span>Traer los postes de la página anterior (postes-trinidad)</span></button>`:""}
-    <div class="foot">Comité Vecinal · Fraccionamiento Trinidad de las Huertas · Oaxaca de Juárez</div>
+    ${mine.length?`<div class="mine">${mine.slice(0,5).map(repLi).join("")}</div>${mine.length>5?`<button type="button" class="linkbtn" data-go="buscar">Ver mis ${mine.length} reportes en Seguimiento</button>`:""}`:`<div class="mine"><div class="empty">Aún no has hecho reportes. Cuando reportes algo, aquí verás cómo va.</div></div>`}
+    <button type="button" class="linkbtn" data-go="numeros">¿Es urgente? Ver números oficiales de las dependencias</button>
   </div>`;
-  $("hReport").onclick=()=>chooseCat();
-  const hp=$("hPend"); if(hp) hp.onclick=()=>openPendientes("");
-  const hm=$("hMine"); if(hm) hm.onclick=()=>openMine();
-  const hi=$("hImport"); if(hi) hi.onclick=()=>importar();
-  const hpn=$("hPedNeg"); if(hpn) hpn.onclick=()=>openPedidosNegocio();
-  const hbp=$("hBizPend"); if(hbp) hbp.onclick=()=>{ setCat("lugares"); openDirectorio("pend"); };
-  const hcl=$("hClave"); if(hcl) hcl.onclick=()=>{ setCat("lugares"); chooseClave(); };
-  $("home").querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
-  $("home").querySelectorAll(".card").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
-  wireRepLi($("home"));
+  $("hReport").onclick=()=>chooseCat(); const hp=$("hPend"); if(hp) hp.onclick=()=>openPendientes("");
 }
+let busq={q:"",f:"todos",k:""};
+function renderBuscar(){
+  const st=busq;
+  const match=r=>{ if(st.k&&r.categoria!==st.k) return false;
+    if(st.f==="abiertos"&&!isOpen(r)) return false; if(st.f==="atendidos"&&r.estado!=="atendido") return false; if(st.f==="mios"&&!r.mio) return false; if(st.f==="confirme"&&!r.apoyo) return false;
+    if(st.f!=="mios"&&r.estado==="descartado"&&!isStaff()) return false;
+    if(!st.q) return true; const it=r.itemId?items.find(p=>p.id===r.itemId):null; const q=norm(st.q);
+    return norm(r.rid)===q||norm([r.rid,r.tipo,r.comentario,CATS[r.categoria].n,it?codigo(it)+" "+(it.ubicacion||""):r.itemCodigo,isStaff()?r.nombre+" "+r.casa:""].join(" ")).includes(q); };
+  const rows=reps.filter(match).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const chips=[["todos","Todos"],["abiertos","Abiertos"],["atendidos","Atendidos"],["mios","Mis reportes"],["confirme","Que confirmé"]];
+  $("home").innerHTML=`<div class="wrap">
+    <div class="srow"><input id="bq" type="search" placeholder="Folio, tipo, calle o número de poste" value="${esc(st.q)}" autocomplete="off" aria-label="Buscar reportes"></div>
+    <div class="filters" style="margin:0">${chips.map(([k,t])=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${st.f===k}">${t}</button>`).join("")}</div>
+    <label style="margin-top:-4px">Sección<select id="bk"><option value="">Todas las secciones</option>${ORDER.map(k=>`<option value="${k}"${st.k===k?" selected":""}>${esc(CATS[k].n)}</option>`).join("")}</select></label>
+    <div class="h3">${rows.length} ${rows.length===1?"reporte":"reportes"}</div>
+    <div class="mine">${rows.slice(0,150).map(repLi).join("")||'<div class="empty">No encontré reportes con esa búsqueda.</div>'}</div>
+    ${rows.length>150?`<div class="hint">Se muestran los 150 más recientes. Escribe algo más específico para encontrar otros.</div>`:""}
+    <div class="hint">Ves los reportes abiertos, los atendidos en los últimos 30 días y todos los tuyos. Si encuentras uno que también te afecta, ábrelo y toca «Yo también lo veo».</div></div>`;
+  const bq=$("bq"); bq.oninput=()=>{ st.q=bq.value.trim(); const pos=bq.selectionStart; renderPage(); const n=$("bq"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} };
+  $("home").querySelectorAll(".chip[data-f]").forEach(b=>b.onclick=()=>{ st.f=b.dataset.f; renderPage(); });
+  $("bk").onchange=e=>{ st.k=e.target.value; renderPage(); };
+}
+function editBtn(id,t){ return isComite()?`<button type="button" class="btn" id="${id}" style="justify-self:start">${esc(t||"Editar")}</button>`:""; }
+function renderComite(){
+  const c=getComite(); const ints=Array.isArray(c.integrantes)?c.integrantes:[];
+  $("home").innerHTML=`<div class="wrap">
+    <section class="hero"><div class="seal"><img alt="" src="seal.jpg"></div><div><div class="eyebrow">Comité Vecinal</div><h2>${esc(c.gestion||"Comité vecinal")}</h2>${c.mensaje?`<p>${esc(c.mensaje)}</p>`:""}</div></section>
+    ${isComite()&&!contenido.comite?`<div class="hint">Estos datos vienen del último oficio del comité. Revísalos y agrega a quien falte con «Editar».</div>`:""}
+    <div class="people">${ints.map((p,i)=>`<div class="person">${p.foto?`<img src="${fotoURL(p.foto)}" alt="Foto de ${esc(p.nombre)}" loading="lazy" referrerpolicy="no-referrer">`:`<span class="ph">${esc(initials(p.nombre.replace(/^(Lic|C\.P|Mtra|Mtro|Dra|Dr|Ing|Arq|Prof)\.?\s+/i,"")))}</span>`}
+      <div class="pc">${esc(p.cargo||"")}</div><div class="pn">${esc(p.nombre)}</div>${p.descripcion?`<div class="pd">${esc(p.descripcion)}</div>`:""}
+      ${p.telefono?`<div class="pa"><a class="btn wa" href="${waLink(p.telefono,"Hola, te escribo desde la app Trinidad de las Huertas.")}" target="_blank" rel="noopener">WhatsApp</a></div>`:""}
+      ${isComite()?`<label class="linkbtn" for="pf${i}" style="text-transform:none;letter-spacing:0;font-size:13px">${p.foto?"Cambiar foto":"Agregar foto"}</label><input type="file" id="pf${i}" data-i="${i}" accept="image/*" hidden>`:""}</div>`).join("")||'<div class="empty">Aún no se registran integrantes.</div>'}</div>
+    ${editBtn("cEdit","Editar comité")}
+  </div>`;
+  const ce=$("cEdit"); if(ce) ce.onclick=editComite;
+  $("home").querySelectorAll('input[type="file"][data-i]').forEach(fi=>fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; if(!f) return; toast("Subiendo foto…");
+    try{ const b64=await resizeImage(f,800); const r=await api("archivoSubir",{data:b64,mime:"image/jpeg",nombre:"integrante"}); const cc=JSON.parse(JSON.stringify(getComite())); cc.integrantes[+fi.dataset.i].foto=r.id;
+      await api("contenidoGuardar",{clave:"comite",data:cc}); contenido.comite=cc; toast("Foto guardada"); renderPage(); }catch(e){ toast(errTxt(e)); } });
+}
+function editComite(){
+  const c=JSON.parse(JSON.stringify(getComite())); let rows=c.integrantes||[];
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>Editar comité</h3>
+    <label>Gestión<input id="cg" value="${esc(c.gestion)}" maxlength="60" placeholder="Ej. Gestión 2026-2027"></label>
+    <label>Mensaje para los vecinos (opcional)<textarea id="cm" maxlength="500">${esc(c.mensaje)}</textarea></label>
+    <div class="seglbl">Integrantes</div><div class="medit" id="cRows"></div><button type="button" class="btn" id="cAdd">+ Agregar integrante</button>
+    <div class="hint err" id="cErr" hidden></div><div class="row"><button type="button" class="btn" id="cNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto">Guardar</button></div></form>`,"wide");
+  const box=m.querySelector("#cRows");
+  const read=()=>{ rows=[...box.querySelectorAll(".mr")].map((r,i)=>({...rows[i],nombre:r.querySelector('[data-f="n"]').value.trim(),cargo:r.querySelector('[data-f="c"]').value.trim(),telefono:r.querySelector('[data-f="t"]').value.trim(),descripcion:r.querySelector('[data-f="d"]').value.trim()})); };
+  const render=()=>{ box.innerHTML=rows.map((r,i)=>`<div class="mr mr2"><input data-f="n" placeholder="Nombre" value="${esc(r.nombre)}" maxlength="80" aria-label="Nombre"><button type="button" class="x2" data-del="${i}" aria-label="Quitar">×</button><input data-f="c" placeholder="Cargo" value="${esc(r.cargo)}" maxlength="40" aria-label="Cargo"><input data-f="t" type="tel" placeholder="WhatsApp (opcional)" value="${esc(r.telefono)}" maxlength="20" aria-label="WhatsApp"><textarea data-f="d" placeholder="Qué atiende (opcional)" maxlength="160" aria-label="Descripción">${esc(r.descripcion)}</textarea></div>`).join("");
+    box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ read(); rows.splice(+b.dataset.del,1); render(); }); };
+  render();
+  m.querySelector("#cAdd").onclick=()=>{ read(); rows.push({nombre:"",cargo:""}); render(); const ins=box.querySelectorAll('[data-f="n"]'); ins[ins.length-1].focus(); };
+  m.querySelector("#cNo").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); read(); const data={gestion:m.querySelector("#cg").value.trim(),mensaje:m.querySelector("#cm").value.trim(),integrantes:rows.filter(r=>r.nombre)};
+    try{ await api("contenidoGuardar",{clave:"comite",data}); contenido.comite=data; m.remove(); toast("Comité guardado"); renderPage(); }catch(e){ const er=m.querySelector("#cErr"); er.textContent=errTxt(e); er.hidden=false; } };
+}
+function renderReglamentos(){
+  const rs=getReglas();
+  $("home").innerHTML=`<div class="wrap">
+    <div class="docs">${rs.map((r,i)=>`<details class="doc"${rs.length===1?" open":""}><summary><span class="ic" style="background:#3f6779">${svgI("reglamento")}</span><span class="b"><span class="p">${esc(r.titulo)}</span><span class="s">${r.actualizado?"Actualizado el "+esc(fecha(r.actualizado)):(r.texto||r.archivo?"":"Aún sin publicar")}</span></span></summary>
+      <div class="docbody">${r.texto?`<div class="doctext">${esc(r.texto)}</div>`:""}
+        ${r.archivo?`<a class="btn" href="${driveView(r.archivo)}" target="_blank" rel="noopener">${svgI("archivo",'width="17" height="17"')}Abrir ${esc(r.archivoNombre||"documento")}</a>`:""}
+        ${!r.texto&&!r.archivo?`<div class="empty" style="padding:4px 0">El comité todavía no publica este reglamento.</div>`:""}
+        ${isComite()?`<div class="actions"><button type="button" class="btn" data-ed="${i}">Editar</button>${!DEF_REGLAS.some(d=>d.id===r.id)?`<button type="button" class="btn danger" data-rm="${i}">Quitar</button>`:""}</div>`:""}</div></details>`).join("")}</div>
+    ${editBtn("rAdd","+ Agregar otro reglamento")}</div>`;
+  $("home").querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>editRegla(+b.dataset.ed));
+  $("home").querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ const list=JSON.parse(JSON.stringify(getReglas())); list.splice(+b.dataset.rm,1); if(await guard(()=>api("contenidoGuardar",{clave:"reglamentos",data:list}),"Reglamento quitado")){ contenido.reglamentos=list; renderPage(); } });
+  const ra=$("rAdd"); if(ra) ra.onclick=()=>editRegla(-1);
+}
+function fileB64(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(f); }); }
+function editRegla(i){
+  const list=JSON.parse(JSON.stringify(getReglas())); const r=i>=0?list[i]:{id:"r"+Date.now().toString(36),titulo:""};
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${i>=0?"Editar reglamento":"Nuevo reglamento"}</h3>
+    <label>Título<input id="rt" value="${esc(r.titulo)}" maxlength="80" required></label>
+    <label>Texto (puedes pegarlo completo)<textarea id="rx" maxlength="30000" style="min-height:180px">${esc(r.texto)}</textarea></label>
+    <div class="seglbl">Documento PDF o foto (opcional)</div>
+    ${r.archivo?`<div class="hint ok" style="margin:0" id="rfName">Archivo actual: ${esc(r.archivoNombre||"documento")}</div>`:`<div class="hint" style="margin:0" id="rfName">Sin archivo</div>`}
+    <label class="btn fotobtn" for="rf">${svgI("archivo",'width="17" height="17"')}${r.archivo?"Cambiar archivo":"Subir PDF o foto"}</label><input type="file" id="rf" accept="application/pdf,image/*" hidden>
+    ${r.archivo?`<label class="check"><input type="checkbox" id="rq"> Quitar el archivo</label>`:""}
+    <div class="hint err" id="rErr" hidden></div><div class="row"><button type="button" class="btn" id="rNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="rOk">Guardar</button></div></form>`,"wide");
+  let file=null; m.querySelector("#rf").onchange=e=>{ file=e.target.files&&e.target.files[0]; if(file){ m.querySelector("#rfName").textContent="Se subirá: "+file.name; m.querySelector("#rfName").className="hint ok"; } };
+  m.querySelector("#rNo").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); const er=m.querySelector("#rErr"); er.hidden=true; const b=m.querySelector("#rOk"); b.disabled=true; b.textContent="Guardando…";
+    try{
+      r.titulo=m.querySelector("#rt").value.trim(); r.texto=m.querySelector("#rx").value.trim(); const rq=m.querySelector("#rq"); if(rq&&rq.checked){ delete r.archivo; delete r.archivoNombre; }
+      if(file){ if(file.size>9e6) throw {msg:"El archivo pesa más de 9 MB. Comprímelo o súbelo como fotos."};
+        let b64, mime=file.type; if(/^image\//.test(mime)&&mime!=="image/png"){ b64=await resizeImage(file,1800); mime="image/jpeg"; } else b64=await fileB64(file);
+        const up=await api("archivoSubir",{data:b64,mime,nombre:file.name}); r.archivo=up.id; r.archivoNombre=file.name; }
+      r.actualizado=nowISO(); if(i>=0) list[i]=r; else list.push(r);
+      await api("contenidoGuardar",{clave:"reglamentos",data:list}); contenido.reglamentos=list; m.remove(); toast("Reglamento guardado"); renderPage();
+    }catch(e){ er.textContent=e.msg||errTxt(e); er.hidden=false; b.disabled=false; b.textContent="Guardar"; } };
+}
+function numerosDe(k){ return getNumeros().filter(n=>Array.isArray(n.secciones)&&n.secciones.includes(k)); }
+function numCard(n,i){ const mapa=n.maps&&/^https?:\/\//.test(n.maps)?n.maps:(n.lat?gmaps(n.lat,n.lon):(n.direccion?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(n.direccion+", Oaxaca")}`:""));
+  return `<div class="num"><div class="nh"><span class="ic" style="background:#b3261e">${svgI("telefono")}</span><span class="b"><span class="p">${esc(n.dependencia)}</span>${n.oficina?`<span class="s">${esc(n.oficina)}</span>`:""}</span></div>
+    ${(n.secciones||[]).length?`<div class="tags">${n.secciones.filter(k=>CATS[k]).map(k=>`<span class="pill" style="background:${CATS[k].col}">${esc(CATS[k].n)}</span>`).join("")}</div>`:""}
+    <dl class="facts" style="margin:6px 0 8px">${n.telefono?`<div><dt>Teléfono</dt><dd>${esc(n.telefono)}</dd></div>`:""}${n.horario?`<div><dt>Horario</dt><dd>${esc(n.horario)}</dd></div>`:""}${n.direccion?`<div class="wide"><dt>Ubicación</dt><dd>${esc(n.direccion)}</dd></div>`:""}${n.notas?`<div class="wide"><dt>Notas</dt><dd>${esc(n.notas)}</dd></div>`:""}${(n.extra||[]).filter(x=>x.k&&x.v).map(x=>`<div class="wide"><dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd></div>`).join("")}</dl>
+    <div class="biz-actions" style="margin:0">${n.telefono?`<a class="btn primary" href="${telHref(n.telefono)}">Llamar</a>`:""}${n.whatsapp?`<a class="btn wa" href="${waLink(n.whatsapp,"Hola, quiero hacer un reporte del Fraccionamiento Trinidad de las Huertas.")}" target="_blank" rel="noopener">WhatsApp</a>`:""}${mapa?`<a class="btn" href="${mapa}" target="_blank" rel="noopener">Ver ubicación</a>`:""}${isComite()&&i>=0?`<button type="button" class="btn" data-ne="${i}">Editar</button>`:""}</div></div>`; }
+function renderNumeros(){
+  const ns=getNumeros();
+  $("home").innerHTML=`<div class="wrap">
+    <div class="hint" style="margin:0">Para emergencias llama al <a href="tel:911" style="color:var(--rep);font-weight:800">911</a>. Aquí están los teléfonos de cada dependencia para reportar directamente; el comité también da seguimiento a lo que reportes en la app.</div>
+    ${isComite()&&!contenido.numeros?`<div class="hint">Agrega con «+ Agregar número» las oficinas que usa el comité (SOAPA, Municipio, Alumbrado, Seguridad…).</div>`:""}
+    <div class="nums">${ns.map(numCard).join("")||'<div class="empty">Aún no hay números registrados.</div>'}</div>
+    ${editBtn("nAdd","+ Agregar número")}</div>`;
+  $("home").querySelectorAll("[data-ne]").forEach(b=>b.onclick=()=>editNumero(+b.dataset.ne));
+  const na=$("nAdd"); if(na) na.onclick=()=>editNumero(-1);
+}
+function openNumerosSheet(k){ const ns=numerosDe(k);
+  openSheet(`<div class="shead"><div class="t"><h2>Números para reportar</h2><div style="color:var(--muted);font-size:13px">${esc(CATS[k].n)}</div></div>${xBtn}</div><div class="nums">${ns.map(n=>numCard(n,-1)).join("")}</div><div class="actions" style="margin-top:12px"><button type="button" class="btn" id="nAll">Ver todos los números</button></div>`,true);
+  $("nAll").onclick=()=>setCat("numeros"); }
+function editNumero(i){
+  const list=JSON.parse(JSON.stringify(getNumeros())); const n=i>=0?list[i]:{id:"n"+Date.now().toString(36),secciones:[],extra:[]}; let extra=Array.isArray(n.extra)?n.extra:[];
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${i>=0?"Editar número":"Nuevo número oficial"}</h3>
+    <label>Dependencia<input id="nd" value="${esc(n.dependencia)}" maxlength="60" required placeholder="Ej. SOAPA, CFE, Municipio de Oaxaca"></label>
+    <label>Oficina o área<input id="no" value="${esc(n.oficina)}" maxlength="80" placeholder="Ej. Reporte de fugas"></label>
+    <div class="row2"><label>Teléfono<input id="nt" type="tel" value="${esc(n.telefono)}" maxlength="30"></label><label>WhatsApp<input id="nw" type="tel" value="${esc(n.whatsapp)}" maxlength="20" placeholder="Opcional"></label></div>
+    <label>Horario<input id="nh" value="${esc(n.horario)}" maxlength="80" placeholder="Ej. Lun a vie 9:00 a 15:00"></label>
+    <label>Ubicación (dirección)<input id="nu" value="${esc(n.direccion)}" maxlength="160" placeholder="Calle, número, colonia"></label>
+    <label>Enlace de Google Maps (opcional)<input id="nm" value="${esc(n.maps)}" maxlength="300"></label>
+    <label>Notas<textarea id="nn" maxlength="400" placeholder="Qué pedir, folio, a quién preguntar…">${esc(n.notas)}</textarea></label>
+    <div class="seglbl">Mostrarlo en estas secciones de reportes</div>
+    <div class="secs">${ORDER.map(k=>`<label class="check"><input type="checkbox" value="${k}"${(n.secciones||[]).includes(k)?" checked":""}> ${esc(CATS[k].n)}</label>`).join("")}</div>
+    <div class="seglbl">Campos adicionales</div><div class="medit" id="xRows"></div><button type="button" class="btn" id="xAdd">+ Agregar campo</button>
+    <div class="hint err" id="nErr" hidden></div>
+    <div class="row">${i>=0?`<button type="button" class="btn danger" id="nDel" style="margin-right:auto">Eliminar</button>`:""}<button type="button" class="btn" id="nNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto">Guardar</button></div></form>`,"wide");
+  const box=m.querySelector("#xRows");
+  const read=()=>{ extra=[...box.querySelectorAll(".mr")].map(r=>({k:r.querySelector('[data-f="k"]').value.trim(),v:r.querySelector('[data-f="v"]').value.trim()})); };
+  const render=()=>{ box.innerHTML=extra.map((x,j)=>`<div class="mr mr3"><input data-f="k" placeholder="Campo (ej. Extensión)" value="${esc(x.k)}" maxlength="40" aria-label="Nombre del campo"><input data-f="v" placeholder="Valor" value="${esc(x.v)}" maxlength="160" aria-label="Valor"><button type="button" class="x2" data-del="${j}" aria-label="Quitar">×</button></div>`).join("");
+    box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ read(); extra.splice(+b.dataset.del,1); render(); }); };
+  render(); m.querySelector("#xAdd").onclick=()=>{ read(); extra.push({k:"",v:""}); render(); box.querySelector(".mr:last-child input").focus(); };
+  m.querySelector("#nNo").onclick=()=>m.remove();
+  const save=async lst=>{ try{ await api("contenidoGuardar",{clave:"numeros",data:lst}); contenido.numeros=lst; m.remove(); toast("Números guardados"); renderPage(); }catch(e){ const er=m.querySelector("#nErr"); er.textContent=errTxt(e); er.hidden=false; } };
+  const del=m.querySelector("#nDel"); if(del) del.onclick=()=>{ list.splice(i,1); save(list); };
+  m.querySelector("form").onsubmit=ev=>{ ev.preventDefault(); read(); const g=id=>m.querySelector(id).value.trim();
+    Object.assign(n,{dependencia:g("#nd"),oficina:g("#no"),telefono:g("#nt"),whatsapp:g("#nw"),horario:g("#nh"),direccion:g("#nu"),maps:g("#nm"),notas:g("#nn"),secciones:[...m.querySelectorAll(".secs input:checked")].map(x=>x.value),extra:extra.filter(x=>x.k&&x.v)});
+    const r=parseLL(n.maps,20000); if(r&&!r.far){ n.lat=r.lat; n.lon=r.lon; } else { delete n.lat; delete n.lon; }
+    if(i>=0) list[i]=n; else list.push(n); save(list); };
+}
+
 function repLi(r){ const c=CATS[r.categoria]; const it=r.itemId?items.find(p=>p.id===r.itemId):null;
   const sub=[it?`${c.Item} ${codigo(it)}`:(r.itemCodigo&&c.inv?`${c.Item} ${r.itemCodigo}`:""), hace(r.fecha), (isStaff()&&!r.mio&&r.nombre)?r.nombre:""].filter(Boolean).join(" · ");
   return `<button class="li" type="button" data-rid="${esc(r.rid)}"><span class="ic" style="background:${c.col}">${svgI(r.categoria)}</span><span class="b"><span class="p">${esc(r.tipo)}</span><span class="s" style="display:block">${esc(sub)}</span></span><span class="pill" style="background:${EST[r.estado][1]}">${EST[r.estado][0]}</span></button>`; }
@@ -872,7 +1111,7 @@ function wireRepLi(root){ root.querySelectorAll(".li[data-rid]").forEach(b=>b.on
 function focusRep(r){
   const c=CATS[r.categoria];
   if(c.inv&&r.itemId){ const p=items.find(x=>x.id===r.itemId); if(p){ if(cat!==r.categoria) setCat(r.categoria,true); requestAnimationFrame(()=>{ center(p.lat,p.lon,3); selected="i:"+p.id; drawPins(); openItem(p,r.rid); }); return; } }
-  if(cat!==r.categoria&&cat!=="todo") setCat(r.categoria,true); else if(!cat) setCat(r.categoria,true);
+  if(cat!==r.categoria&&cat!=="todo") setCat(r.categoria,true);
   requestAnimationFrame(()=>{ center(r.lat,r.lon,3); selected="r:"+r.rid; drawPins(); openRep(r); });
 }
 
@@ -1068,6 +1307,7 @@ function reportModal(o){
     <label class="btn fotobtn" for="rpFoto">${svgCam}<span id="rpFotoTxt">Agregar foto (opcional)</span></label><input type="file" id="rpFoto" accept="image/*" hidden>
     <img id="rpPrev" class="fotoprev" alt="Foto que vas a enviar" hidden>
     <div class="hint" style="margin:0">Se registrará a tu nombre: <b>${esc(u.nombre)}</b> · ${esc(u.calle)} ${esc(u.casa)}</div>
+    ${numerosDe(o.cat).length?`<div class="hint" style="margin:0">¿Es urgente? También puedes llamar: ${numerosDe(o.cat).filter(n=>n.telefono).map(n=>`<a href="${telHref(n.telefono)}" style="color:var(--accent);font-weight:700">${esc(n.dependencia)} ${esc(n.telefono)}</a>`).join(" · ")}</div>`:""}
     <div class="hint err" id="rpErr" hidden></div>
     <div class="row"><button type="button" class="btn" id="rpNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="rpOk">Enviar reporte</button></div></form>`,"wide");
   let foto=null; const close=()=>{ m.remove(); if(o.onClose) o.onClose(); };
@@ -1456,12 +1696,12 @@ $("btnMe").onclick=()=>{ if(watchId!==null){ navigator.geolocation.clearWatch(wa
 let refreshing=null;
 async function refresh(){
   if(!S.token) return; if(refreshing) return refreshing;
-  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat)); lugares=(j.lugares||[]).filter(l=>!isNaN(l.lat)); pedidos=j.pedidos||[];
+  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat)); lugares=(j.lugares||[]).filter(l=>!isNaN(l.lat)); pedidos=j.pedidos||[]; contenido=j.contenido||{};
       if(share){ const p=pedidos.find(x=>x.pid===share.pid); if(!p||p.estado!=="camino") stopShare(); }
       if(j.user&&(j.user.rol!==S.user.rol||j.user.estado!==S.user.estado)){ setSession(S.token,j.user); if(cat) fabs(); }
       loaded=true; $("dbBanner").hidden=true;
-      if(!cat) renderHome(); else { summary(); if(!(gest&&gest.type==="pin"&&gest.moved)) drawPins(); } renderCats(); $("btnMe2").textContent=initials(S.user.nombre);
-    }catch(e){ if(e.code==="sesion") return; const b=$("dbBanner"); b.innerHTML='<span class="msg">No se pudo conectar con la hoja de datos. Revisa tu internet.</span>'; b.hidden=!cat; if(!loaded&&!cat) $("home").innerHTML='<div class="loading">Sin conexión. Revisa tu internet y vuelve a abrir la app.</div>'; }
+      if(isPage(cat)) renderPage(); else { summary(); if(!(gest&&gest.type==="pin"&&gest.moved)) drawPins(); } renderCats(); $("btnMe2").textContent=initials(S.user.nombre);
+    }catch(e){ if(e.code==="sesion") return; const b=$("dbBanner"); b.innerHTML='<span class="msg">No se pudo conectar con la hoja de datos. Revisa tu internet.</span>'; b.hidden=isPage(cat); if(!loaded&&isPage(cat)) $("home").innerHTML='<div class="loading">Sin conexión. Revisa tu internet y vuelve a abrir la app.</div>'; }
     finally{ refreshing=null; } })();
   return refreshing;
 }
@@ -1475,7 +1715,7 @@ function authMsg(t){ const e=$("inErr"); e.textContent=t; e.hidden=false; }
 function setTab(up){ $("tabIn").setAttribute("aria-selected",String(!up)); $("tabUp").setAttribute("aria-selected",String(up)); $("fIn").hidden=up; $("fUp").hidden=!up; $("inErr").hidden=true; $("upErr").hidden=true; }
 $("tabIn").onclick=()=>setTab(false); $("tabUp").onclick=()=>setTab(true);
 document.querySelectorAll(".eye").forEach(b=>b.onclick=()=>{ const i=b.previousElementSibling; i.type=i.type==="password"?"text":"password"; b.textContent=i.type==="password"?"Ver":"Ocultar"; });
-function enterApp(){ $("auth").hidden=true; $("app").hidden=false; $("btnMe2").textContent=initials(S.user.nombre); const h=(location.hash||"").slice(1); setCat(CATS[h]||h==="todo"||h==="lugares"?h:""); refresh(); }
+function enterApp(){ $("auth").hidden=true; $("app").hidden=false; $("btnMe2").textContent=initials(S.user.nombre); const h=(location.hash||"").slice(1); setCat(CATS[h]||h==="todo"||h==="lugares"||isPage(h)?h:""); refresh(); }
 $("fIn").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelector('[type="submit"]'); b.disabled=true; $("inErr").hidden=true;
   try{ const r=await api("login",{usuario:$("inU").value.trim(),password:$("inP").value}); setSession(r.token,r.user); $("inP").value=""; enterApp(); }
   catch(e){ authMsg(errTxt(e)); } finally{ b.disabled=false; } };
