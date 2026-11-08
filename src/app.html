@@ -329,7 +329,7 @@ const CATS = {
     fallas:["Funciona bien","Tapado","Se desborda","Sin tapa","Tapa rota","Hundimiento","Mal olor","Otra"],
     tipoDe:f=>({"Funciona bien":"ok","Tapado":"reparacion","Se desborda":"reparacion","Sin tapa":"peligro","Tapa rota":"peligro","Hundimiento":"peligro"})[f]||"revisar",
     tipos:{reparacion:["Tapado o desborda","var(--rep)"],peligro:["Sin tapa / peligro","var(--falta)"],revisar:["Revisar","var(--rev)"],ok:["Funciona bien","var(--done)"]},
-    rep:["Tapado","Se desborda","Sin tapa","Tapa rota","Hundimiento","Mal olor","Otra"], repToFalla:{},
+    rep:["Tapado / requiere desazolve","Se desborda","Sin tapa","Tapa rota","Hundimiento","Mal olor","Otra"], repToFalla:{"Tapado / requiere desazolve":"Tapado"},
     code:"Identificador del registro", codePh:"Ej. R-12 o S/N", hecho:"Atendido"},
   baches:{n:"Baches", s:"bache", inv:false, col:"#7a5230", desc:"Calles y banquetas", rep:["Bache","Hundimiento","Banqueta dañada","Tope dañado","Otro"]},
   fugas:{n:"Fugas de agua", s:"fuga de agua", inv:false, col:"#2f6fd6", desc:"Agua potable", rep:["Fuga en la calle","Fuga en toma o medidor","Sin agua","Baja presión","Agua sucia","Otra"]},
@@ -497,6 +497,11 @@ function drawPins(){
 }
 let vinCache=[];
 const findPin = k=>{ const q=pinCache.find(q=>q.k===k); if(q) return q; const l=k.startsWith("l:")&&lugares.find(x=>"l:"+x.id===k); return l?{k,l}:null; };
+// Calle más cercana a un punto, con el croquis de OpenStreetMap
+function calleCercana(lat,lon){ const [x,y]=llToW(lat,lon); let best=null, bd=1e9;
+  for(const w of WAYS){ if(w.n==="Privada") continue; for(let i=1;i<w.pts.length;i++){ const [ax,ay]=w.pts[i-1],[bx,by]=w.pts[i]; const dx=bx-ax,dy=by-ay; const t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/((dx*dx+dy*dy)||1)));
+    const d=Math.hypot(x-(ax+t*dx),y-(ay+t*dy)); if(d<bd){ bd=d; best=w.n; } } }
+  return bd<70?best:""; }
 const nextNum = k=>Math.max(0,...catItems(k).map(q=>q.num||0))+1;
 
 // Gestos: mover, pellizcar, arrastrar puntos (solo comité en su sección de inventario)
@@ -625,7 +630,7 @@ function summary(){ if(isPage(cat)) return;
     const alertH=(isStaff()&&s.nuevos)?`<button type="button" class="stat alert" id="openRep"><b>${s.nuevos}</b>${s.nuevos===1?"reporte nuevo":"reportes nuevos"}</button>`:"";
     if(c.inv){ const it=catItems(cat), bad=it.filter(p=>!isGreen(p)); const n=t=>bad.filter(p=>tipoOf(p)===t).length;
       h = it.length ? alertH+st(it.length,"registrados")+Object.entries(c.tipos).filter(([k])=>k!=="ok").map(([k,[t,col]])=>st(n(k),t.toLowerCase(),col)).join("")+st(it.length-bad.length,"funcionan","var(--done)")
-        : alertH+`<span class="stat muted">${isComite()?`Aún no hay ${c.item}s. Toca «Nuevo ${c.item}» para agregar el primero.`:`Aún no hay ${c.item}s registrados. Puedes reportar uno.`}</span>`;
+        : alertH+`<span class="stat muted">${isComite()?`Aún no hay ${c.item}s. Toca «Nuevo ${c.item}» para agregar el primero.`:`Aún no hay ${c.item}s en el mapa. Puedes reportar uno.`}</span>`;
     } else { const rr=catReps(cat); h=alertH+st(rr.filter(r=>r.estado==="nuevo").length,"nuevos",EST.nuevo[1])+st(rr.filter(r=>r.estado==="proceso").length,"en atención",EST.proceso[1])+st(rr.filter(r=>r.estado==="atendido").length,"atendidos",EST.atendido[1]); }
   }
   if(CATS[cat]&&numerosDe(cat).length) h+=`<button type="button" class="stat" id="openNums" style="cursor:pointer"><i style="background:#b3261e"></i>Números para reportar</button>`;
@@ -708,7 +713,7 @@ function renderReportes(){
   const mine=reps.filter(r=>r.mio).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   const nNuevos=isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
   const card=k=>{ const c=CATS[k], s=stat(k); let mt;
-    if(c.inv){ mt = s.total ? `<div class="bar" style="--mcol:${s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)"}"><i style="width:${s.pct}%"></i></div><div class="mt ${s.bad?"bad":"good"}">${s.pct}% funciona · ${s.bad} con falla</div>` : `<div class="mt">Sin ${c.item}s registrados</div>`; }
+    if(c.inv){ mt = s.total ? `<div class="bar" style="--mcol:${s.pct>=85?"var(--done)":s.pct>=60?"var(--gold)":"var(--rep)"}"><i style="width:${s.pct}%"></i></div><div class="mt ${s.bad?"bad":"good"}">${s.pct}% funciona · ${s.bad} con falla</div>` : `<div class="mt">Aún sin ${c.item}s en el mapa</div>`; }
     else mt = `<div class="mt ${s.abiertos?"bad":"good"}">${s.abiertos?`${s.abiertos} ${s.abiertos===1?"abierto":"abiertos"}`:"Sin reportes abiertos"}</div>`;
     return `<button type="button" class="card" data-go="${k}"><span class="ic" style="background:${c.col}">${svgI(k)}</span><span class="nm">${esc(c.n)}</span><span class="ds">${esc(c.desc)}</span>${mt}</button>`; };
   $("home").innerHTML=`<div class="wrap">
@@ -1017,9 +1022,9 @@ function openRep(r){
       ${isComite()&&r.estado!=="descartado"?`<button class="btn danger" type="button" id="btnDesc">Descartar</button>`:""}</div></form>` : "";
   const sh=openSheet(`<div class="shead"><div class="badge" style="background:${c.col}">${svgI(r.categoria)}</div>
       <div class="t"><h2>${esc(r.tipo)}</h2><span class="tag" style="background:${est[1]}">${est[0]}</span>
-      <div class="coords">${esc(c.n)}${it?` · ${c.Item} ${esc(codigo(it))}`:(c.inv?` · ${c.Item} sin registrar`:"")}</div></div>${xBtn}</div>`+
+      <div class="coords">${esc(c.n)}${it?` · ${c.Item} ${esc(codigo(it))}`:(c.inv?` · ${c.Item} aún no está en el mapa`:"")}</div></div>${xBtn}</div>`+
     fotoH(r.foto,`Foto del reporte`,isStaff()||r.mio?"fotoRep":null,"Agregar foto")+whoH(r)+
-    (r.comentario?`<dl class="facts"><div class="wide"><dt>Comentario</dt><dd>${esc(r.comentario)}</dd></div></dl>`:"")+
+    ((r.referencia||r.comentario)?`<dl class="facts">${r.referencia?`<div class="wide"><dt>Calle o referencia</dt><dd>${esc(r.referencia)}</dd></div>`:""}${r.comentario?`<div class="wide"><dt>Comentario</dt><dd>${esc(r.comentario)}</dd></div>`:""}</dl>`:"")+
     (r.estado!=="nuevo"&&r.fechaEstado?`<div class="repdate" style="margin:-4px 0 12px">${est[0]} desde ${esc(fecha(r.fechaEstado))}</div>`:"")+
     apoyo+acuseH(r)+seg+staffH+
     `<div class="actions" style="margin-top:10px">${it?`<button type="button" class="btn" id="btnGoItem">Ver el ${c.item}</button>`:""}<a class="btn" href="${gmaps(r.lat,r.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
@@ -1046,7 +1051,7 @@ async function aceptarInv(r){
   const c=CATS[r.categoria]; const f0=(c.repToFalla||{})[r.tipo]||r.tipo; const falla=c.fallas.includes(f0)?f0:"Otra";
   let it=r.itemId?items.find(p=>p.id===r.itemId):null;
   const ok=await guard(async()=>{
-    if(!it){ const res=await api("itemGuardar",{categoria:r.categoria,data:{codigo:r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:"",poste:r.categoria==="luminarias"?(r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:""):undefined,falla,tipo:c.tipoDe(falla),estado:"pendiente",lat:r.lat,lon:r.lon,ubicacion:"",entre:"",notas:r.comentario||"",historial:[{f:nowISO(),t:`Registrado desde el reporte de ${r.nombre||"un vecino"}: ${r.tipo}`,u:S.user.nombre}]}});
+    if(!it){ const res=await api("itemGuardar",{categoria:r.categoria,data:{codigo:r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:"",poste:r.categoria==="luminarias"?(r.itemCodigo&&r.itemCodigo!=="S/N"?r.itemCodigo:""):undefined,falla,tipo:c.tipoDe(falla),estado:"pendiente",lat:r.lat,lon:r.lon,ubicacion:r.referencia||"",entre:"",notas:r.comentario||"",historial:[{f:nowISO(),t:`Registrado desde el reporte de ${r.nombre||"un vecino"}: ${r.tipo}`,u:S.user.nombre}]}});
       it=res.item; items.push(it); await api("reporteEstado",{rid:r.rid,estado:"proceso",itemId:it.id,itemCodigo:codigo(it)}); }
     else { await api("itemGuardar",{categoria:r.categoria,id:it.id,data:{falla,tipo:c.tipoDe(falla),estado:"pendiente",fechaReparacion:null,historial:histPush(it,`Reporte de ${r.nombre||"un vecino"}: ${r.tipo}`)}});
       await api("reporteEstado",{rid:r.rid,estado:"proceso"}); }
@@ -1064,12 +1069,13 @@ function reportModal(o){
     <h3>Reportar ${esc(c.s)}</h3><p>${esc(titulo)}</p>
     ${yaMio?`<div class="hint ok" style="margin:0">Ya reportaste este ${c.item}; el comité lo tiene en ${EST[yaMio.estado][0].toLowerCase()}.</div>`:""}
     ${near.length?`<div class="near"><div class="hint" style="margin:0">Ya hay ${near.length===1?"un reporte":"reportes"} muy cerca. Si es el mismo, confírmalo en lugar de repetirlo:</div>${near.map(r=>`<div class="r"><span><b>${esc(r.tipo)}</b> · ${esc(hace(r.fecha))}${r.nApoyos?` · ${r.nApoyos} confirmaciones`:""}</span><button type="button" class="btn" data-ap="${esc(r.rid)}">${r.apoyo?"Ya confirmado":"Es este"}</button></div>`).join("")}</div>`:""}
+    ${o.item&&o.item.ubicacion?"":`<label>Calle o referencia<input id="rpRef" maxlength="160" value="${esc(calleCercana(o.lat,o.lon))}" placeholder="Ej. Huerto Los Olmos, frente al 18"></label>`}
     <label>¿Qué pasa?<select id="rpTipo" required><option value="" selected disabled>Elige…</option>${c.rep.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label>
     <label>Comentario (opcional)<textarea id="rpCom" maxlength="400" placeholder="Desde cuándo, referencias, qué tan grave es…" style="min-height:70px"></textarea></label>
     <label class="btn fotobtn" for="rpFoto">${svgCam}<span id="rpFotoTxt">Agregar foto (opcional)</span></label><input type="file" id="rpFoto" accept="image/*" hidden>
     <img id="rpPrev" class="fotoprev" alt="Foto que vas a enviar" hidden>
     <div class="hint" style="margin:0">Se registrará a tu nombre: <b>${esc(u.nombre)}</b> · ${esc(u.calle)} ${esc(u.casa)}</div>
-    ${numerosDe(o.cat).length?`<div class="hint" style="margin:0">¿Es urgente? También puedes llamar: ${numerosDe(o.cat).filter(n=>n.telefono).map(n=>`<a href="${telHref(n.telefono)}" style="color:var(--accent);font-weight:700">${esc(n.dependencia)} ${esc(n.telefono)}</a>`).join(" · ")}</div>`:""}
+    ${numerosDe(o.cat).some(n=>n.telefono)?`<div class="hint" style="margin:0">¿Es urgente? También puedes llamar: ${numerosDe(o.cat).filter(n=>n.telefono).map(n=>`<a href="${telHref(n.telefono)}" style="color:var(--accent);font-weight:700">${esc(n.dependencia)} ${esc(n.telefono)}</a>`).join(" · ")}</div>`:""}
     <div class="hint err" id="rpErr" hidden></div>
     <div class="row"><button type="button" class="btn" id="rpNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="rpOk">Enviar reporte</button></div></form>`,"wide");
   let foto=null; const close=()=>{ m.remove(); if(o.onClose) o.onClose(); };
@@ -1077,7 +1083,7 @@ function reportModal(o){
   m.querySelectorAll("[data-ap]").forEach(b=>b.onclick=async()=>{ const r=reps.find(x=>x.rid===b.dataset.ap); if(!r||r.apoyo) return close(); const res=await guard(()=>api("apoyar",{rid:r.rid}),"Gracias, se sumó tu confirmación al reporte"); if(res){ r.apoyo=true; r.nApoyos=res.nApoyos; } close(); });
   m.querySelector("#rpFoto").onchange=async ev=>{ const f=ev.target.files&&ev.target.files[0]; if(!f) return; try{ foto=await resizeImage(f,1280); const pv=m.querySelector("#rpPrev"); pv.src="data:image/jpeg;base64,"+foto; pv.hidden=false; m.querySelector("#rpFotoTxt").textContent="Cambiar foto"; }catch(e){ toast("No se pudo leer la foto."); } };
   m.querySelector("#rpForm").onsubmit=async ev=>{ ev.preventDefault(); const b=m.querySelector("#rpOk"); b.disabled=true; b.textContent="Enviando…"; const er=m.querySelector("#rpErr"); er.hidden=true;
-    try{ const res=await api("reportar",{categoria:o.cat,itemId:o.item?o.item.id:"",itemCodigo:o.item?codigo(o.item):(c.inv?"S/N":""),tipo:m.querySelector("#rpTipo").value,comentario:m.querySelector("#rpCom").value.trim(),lat:+(+o.lat).toFixed(7),lon:+(+o.lon).toFixed(7),foto:foto||""});
+    try{ const res=await api("reportar",{categoria:o.cat,itemId:o.item?o.item.id:"",itemCodigo:o.item?codigo(o.item):(c.inv?"S/N":""),referencia:(m.querySelector("#rpRef")||{value:""}).value.trim(),tipo:m.querySelector("#rpTipo").value,comentario:m.querySelector("#rpCom").value.trim(),lat:+(+o.lat).toFixed(7),lon:+(+o.lon).toFixed(7),foto:foto||""});
       m.remove(); pendingNew=null; await refresh(); toast("¡Gracias! Tu reporte llegó al comité.");
       const r=reps.find(x=>x.rid===res.rid);
       if(r&&OFICIO[o.cat]){ selected=(o.item?"i:"+o.item.id:"r:"+r.rid); drawPins(); openRep(r); oficioModal(r,true); }
@@ -1123,7 +1129,7 @@ function openPendientes(k,all){
   const sh=openSheet(`<div class="shead"><div class="t"><h2>${all?"Pendientes":"Reportes nuevos"}${k?" · "+esc(CATS[k].n):""}</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"reporte":"reportes"}</div></div>${xBtn}</div>
     <div>${rows.map(r=>{ const c=CATS[r.categoria]; const it=r.itemId?items.find(p=>p.id===r.itemId):null;
       return `<div class="repitem" data-rid="${esc(r.rid)}"><div class="t" style="display:flex;gap:8px;align-items:center"><span class="li" style="display:contents"><span class="ic" style="background:${c.col}">${svgI(r.categoria)}</span></span>${esc(c.n)}: ${esc(r.tipo)}</div>
-        <div class="m">${it?`${c.Item} ${esc(codigo(it))} (#${it.num})${it.ubicacion?" · "+esc(it.ubicacion):""}`:(c.inv?`${c.Item} sin registrar`:"")}${r.comentario?` · “${esc(r.comentario)}”`:""}</div>
+        <div class="m">${it?`${c.Item} ${esc(codigo(it))} (#${it.num})${it.ubicacion?" · "+esc(it.ubicacion):""}`:(c.inv?`${c.Item} aún no está en el mapa`:"")}${r.referencia?` · ${esc(r.referencia)}`:""}${r.comentario?` · “${esc(r.comentario)}”`:""}</div>
         <div class="m">${esc(r.nombre||"Vecino")}${r.casa?" · "+esc(r.casa):""} · ${esc(fechaHora(r.fecha))}${r.nApoyos?` · ${r.nApoyos} confirmaciones`:""}</div>
         <div class="a"><button type="button" class="btn" data-a="ver">Ver en el mapa</button>
           ${r.estado==="nuevo"?(c.inv?(isComite()?`<button type="button" class="btn primary" data-a="acc" style="flex:0 0 auto">${it?"Aceptar":"Registrar y aceptar"}</button>`:""):`<button type="button" class="btn primary" data-a="proc" style="flex:0 0 auto">En atención</button>`):""}
@@ -1473,14 +1479,14 @@ function pdfRecibido(ctx,reserve){ const {doc,W,M}=ctx; reserve=reserve||50; let
   doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...GRIS); doc.text("Sello y fecha de recibido",W-M-31,y+4.5,{align:"center"}); doc.setTextColor(...TINTA); return y; }
 function pdfPie(ctx,folio){ const {doc,W}=ctx; const n=doc.getNumberOfPages(); for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(...GRIS);
   doc.text(`Documento generado en la app del Comité Vecinal Trinidad de las Huertas${folio?` · Folio ${folio}`:""} · Página ${i} de ${n}`,W/2,272,{align:"center"}); } }
-function ubicacionDe(r){ const it=r.itemId?items.find(p=>p.id===r.itemId):null; return {it, calle:it?(it.ubicacion||""):"", entre:it?(it.entre||""):""}; }
+function ubicacionDe(r){ const it=r.itemId?items.find(p=>p.id===r.itemId):null; return {it, calle:(it&&it.ubicacion)||r.referencia||"", entre:it?(it.entre||""):""}; }
 async function oficioVecino(r,dep){
   const c=CATS[r.categoria], of=OFICIO[r.categoria], u=S.user; const {it,calle,entre}=ubicacionDe(r);
   const ctx=await pdfBase(); pdfCabecera(ctx,of.asunto,r.rid,dep);
-  pdfText(ctx,`Por medio del presente, y con fundamento en el artículo 8° de la Constitución Política de los Estados Unidos Mexicanos, me permito solicitar de la manera más atenta su valioso apoyo para ${of.pide} que se describe a continuación, ubicada en el Fraccionamiento Trinidad de las Huertas, Oaxaca de Juárez, Oaxaca.`,{after:2});
+  pdfText(ctx,`Por medio del presente, y con fundamento en el artículo 8° de la Constitución Política de los Estados Unidos Mexicanos, me permito solicitar de la manera más atenta su valioso apoyo para ${of.pide} que se describe a continuación, en el Fraccionamiento Trinidad de las Huertas, Oaxaca de Juárez, Oaxaca.`,{after:2});
   const rows=[["Fecha del reporte",fechaHora(r.fecha)],["Qué sucede",r.tipo]];
-  if(c.inv) rows.push([c.code,it?codigo(it):(r.itemCodigo||"Sin número")]);
-  if(calle) rows.push(["Calle",calle]); if(entre) rows.push(["Entre calles",entre]);
+  if(c.inv&&(it||(r.itemCodigo&&r.itemCodigo!=="S/N"))) rows.push([c.code,it?codigo(it):r.itemCodigo]);
+  if(calle) rows.push([it&&it.ubicacion?"Calle":"Calle o referencia",calle]); if(entre) rows.push(["Entre calles",entre]);
   rows.push(["Ubicación (Google Maps)",gmaps(r.lat,r.lon)]);
   if(r.comentario) rows.push(["Comentarios",r.comentario]);
   pdfDatos(ctx,rows);
@@ -1498,7 +1504,7 @@ async function oficioGeneral(k,lista,dep){
   const ctx=await pdfBase(); pdfCabecera(ctx,of.asunto.replace(/de (luminaria|árbol)$/,m=>m==="de luminaria"?"de luminarias":"de árboles").replace("registro de drenaje","registros de drenaje"),"",dep);
   pdfText(ctx,`Por medio del presente, y con fundamento en el artículo 8° de la Constitución Política de los Estados Unidos Mexicanos, los integrantes del Comité Vecinal del Fraccionamiento Trinidad de las Huertas, ${com.gestion||""}, nos permitimos solicitar de la manera más atenta su valioso apoyo para ${of.gen} que se enlistan a continuación (${lista.length} ${lista.length===1?of.unidad[0]:of.unidad[1]}), reportados por los vecinos del fraccionamiento.`,{after:2});
   const head = c.inv ? [["#",c.Item,"Qué sucede","Calle","Entre calles","Reportes"]] : [["#","Qué sucede","Ubicación","Reportó","Fecha"]];
-  const body = lista.map((x,i)=> c.inv ? [String(x.num??i+1),codigo(x),x.falla||"",x.ubicacion||"",x.entre||"",String(openReps(x.id).length||"")] : [String(i+1),x.tipo+(x.comentario?` · ${x.comentario}`:""),`${(+x.lat).toFixed(5)}, ${(+x.lon).toFixed(5)}`,x.nombre||"",fecha(x.fecha)]);
+  const body = lista.map((x,i)=> c.inv ? [String(x.num??i+1),codigo(x),x.falla||"",x.ubicacion||"",x.entre||"",String(openReps(x.id).length||"")] : [String(i+1),x.tipo+(x.comentario?` · ${x.comentario}`:""),x.referencia||`${(+x.lat).toFixed(5)}, ${(+x.lon).toFixed(5)}`,x.nombre||"",fecha(x.fecha)]);
   ctx.doc.autoTable({startY:ctx.y,margin:{left:ctx.M,right:ctx.M},head,body,theme:"grid",styles:{font:"helvetica",fontSize:8.8,cellPadding:1.6,textColor:TINTA,lineColor:[220,203,176]},headStyles:{fillColor:GUINDA,textColor:[255,255,255],fontStyle:"bold"},alternateRowStyles:{fillColor:[250,246,239]}});
   ctx.y=ctx.doc.lastAutoTable.finalY+7;
   pdfText(ctx,`La ubicación exacta de cada punto puede consultarse en la aplicación del Comité Vecinal. Agradeceremos que la respuesta o el número de atención se haga llegar a este Comité.`,{after:2});
@@ -1624,7 +1630,7 @@ $("fIn").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelect
 $("fUp").onsubmit=async ev=>{ ev.preventDefault(); const b=ev.target.querySelector('[type="submit"]'); b.disabled=true; const er=$("upErr"); er.hidden=true;
   const usuario=$("upU").value.trim().toLowerCase();
   if(!/^[a-z0-9._-]{3,30}$/.test(usuario)){ er.textContent=ERR.usuario_invalido; er.hidden=false; b.disabled=false; return; }
-  try{ const r=await api("registro",{usuario,password:$("upP").value,nombre:$("upN").value,calle:$("upC").value,casa:$("upH").value,telefono:$("upT").value}); setSession(r.token,r.user); $("upP").value=""; enterApp(); toast(`¡Bienvenido, ${String(r.user.nombre).split(" ")[0]}! Ya puedes reportar.`); }
+  try{ const r=await api("registro",{usuario,password:$("upP").value,nombre:$("upN").value,calle:$("upC").value,casa:$("upH").value,telefono:$("upT").value}); setSession(r.token,r.user); $("upP").value=""; enterApp(); toast(`¡Te damos la bienvenida, ${String(r.user.nombre).split(" ")[0]}! Ya puedes reportar.`); }
   catch(e){ er.textContent=errTxt(e); er.hidden=false; } finally{ b.disabled=false; } };
 
 if(!API_URL||API_URL.startsWith("@@")){ showAuth(); authMsg("Falta conectar la hoja de datos (API_URL)."); }

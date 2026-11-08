@@ -11,7 +11,7 @@ const PROPS = PropertiesService.getScriptProperties();
 const H_USUARIOS = ['usuario', 'nombre', 'calle', 'casa', 'telefono', 'rol', 'estado', 'salt', 'hash', 'creado', 'ultimoAcceso'];
 const H_ITEMS = ['id', 'categoria', 'num', 'codigo', 'falla', 'estado', 'ubicacion', 'entre', 'lat', 'lon', 'foto', 'actualizado', 'por', 'data'];
 const H_REPORTES = ['rid', 'fecha', 'categoria', 'itemId', 'itemCodigo', 'tipo', 'comentario', 'usuario', 'nombre', 'casa', 'telefono',
-  'lat', 'lon', 'foto', 'estado', 'fechaEstado', 'por', 'notas', 'cuadrilla', 'apoyos', 'historial', 'acuse', 'folioDep'];
+  'lat', 'lon', 'foto', 'estado', 'fechaEstado', 'por', 'notas', 'cuadrilla', 'apoyos', 'historial', 'acuse', 'folioDep', 'referencia'];
 const H_BITACORA = ['fecha', 'usuario', 'nombre', 'accion', 'detalle'];
 const H_LUGARES = ['id', 'clase', 'nombre', 'giro', 'estado', 'dueno', 'lat', 'lon', 'foto', 'actualizado', 'por', 'data'];
 const H_PEDIDOS = ['pid', 'fecha', 'lugarId', 'lugarNombre', 'cliente', 'nombre', 'casa', 'telefono', 'items', 'total', 'entrega', 'nota',
@@ -146,7 +146,7 @@ function reporteDe_(r) {
     itemCodigo: String(r.itemCodigo || ''), tipo: r.tipo, comentario: r.comentario, usuario: String(r.usuario), nombre: r.nombre, casa: String(r.casa),
     telefono: String(r.telefono || ''), lat: Number(r.lat), lon: Number(r.lon), foto: String(r.foto || ''), estado: r.estado || 'nuevo',
     fechaEstado: r.fechaEstado instanceof Date ? r.fechaEstado.toISOString() : String(r.fechaEstado || ''), por: String(r.por || ''), notas: String(r.notas || ''),
-    cuadrilla: String(r.cuadrilla || ''), apoyos: apoyos, historial: hist, acuse: String(r.acuse || ''), folioDep: String(r.folioDep || ''), _row: r._row
+    cuadrilla: String(r.cuadrilla || ''), apoyos: apoyos, historial: hist, acuse: String(r.acuse || ''), folioDep: String(r.folioDep || ''), referencia: String(r.referencia || ''), _row: r._row
   };
 }
 function datos_(u) {
@@ -289,7 +289,7 @@ function atender_(req) {
         rid: rid, fecha: ahora_(), categoria: cat, itemId: limpiar_(req.itemId, 40), itemCodigo: limpiar_(req.itemCodigo, 40), tipo: tipo,
         comentario: limpiar_(req.comentario, 400), usuario: u.usuario, nombre: u.nombre, casa: `${u.calle} ${u.casa}`, telefono: u.telefono,
         lat: lat, lon: lon, foto: foto, estado: 'nuevo', fechaEstado: ahora_(), por: '', notas: '', cuadrilla: '', apoyos: '[]',
-        historial: JSON.stringify([{ f: ahora_(), t: 'Reporte recibido', u: u.nombre }])
+        historial: JSON.stringify([{ f: ahora_(), t: 'Reporte recibido', u: u.nombre }]), referencia: limpiar_(req.referencia, 160)
       };
       escribirFila_(sh, H_REPORTES, null, r);
       bitacora_(u, 'Reportó ' + cat, `${tipo}${r.itemCodigo ? ' · ' + r.itemCodigo : ''} · ${rid}`);
