@@ -302,6 +302,16 @@ body{touch-action:auto}
 .hero .eyebrow{font:700 11px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--head-gold)}
 .hero h2{font:800 clamp(18px,5vw,24px) var(--display);margin:2px 0 4px;text-wrap:balance;line-height:1.15}
 .hero p{margin:0;font-size:14px;opacity:.92;line-height:1.35}
+.aguacard{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:1px solid #cfe0fb;background:linear-gradient(135deg,#eef5ff,#fff);color:var(--ink);border-radius:16px;padding:12px 14px;cursor:pointer;font:inherit}
+.aguacard .ic,.aguali .th svg{width:44px;height:44px;flex:0 0 44px;border-radius:12px;background:#2f6fd6;color:#fff;display:grid;place-items:center}.aguacard .ic svg{width:24px;height:24px}
+.aguacard .b{display:grid;gap:4px;flex:1;min-width:0}.aguacard .k{font:700 11.5px var(--body);text-transform:uppercase;letter-spacing:.06em;color:#2f6fd6}.aguacard .t{font:700 16px var(--display)}.aguacard .s{font:700 13px var(--body)}
+.aguacard .bar,.aguahero .bar{height:7px;border-radius:4px;background:#dbe7f8;overflow:hidden}.aguacard .bar i,.aguahero .bar i{display:block;height:100%;border-radius:4px}
+.aguahero{display:grid;gap:8px;background:linear-gradient(135deg,#2f6fd6,#1d4f9e);color:#fff;border-radius:18px;padding:16px;border-bottom:4px solid var(--head-gold);box-shadow:var(--shadow)}
+.aguahero .k{font:700 12px var(--body);text-transform:uppercase;letter-spacing:.08em;color:#cfe0fb}.aguahero .t{font:800 22px/1.15 var(--display)}.aguahero .s{font-size:14.5px;line-height:1.35;color:#e6efff}.aguahero .s b{color:#fff}
+.aguahero .bar{background:rgba(255,255,255,.25)}.aguahero .row2{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;flex-wrap:wrap}
+.aguatips p{margin:0 0 8px;font-size:14.5px;line-height:1.4}.aguatips p:last-child{margin:0}
+.aguali{display:flex;align-items:center;gap:12px;cursor:default}.aguali .x2{flex:0 0 38px;border:1px solid var(--line);background:var(--bg);color:var(--accent);border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px}.aguali .th{flex:0 0 46px;width:46px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);padding:0;background:var(--panel);cursor:pointer;display:grid;place-items:center}
+.aguali .th img{width:100%;height:100%;object-fit:cover;object-position:top}.aguali .b{display:grid;gap:2px;flex:1;min-width:0}.aguali .p{font-weight:700;font-size:15px}.aguali .s{font-size:13px;color:var(--muted)}
 .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media (min-width:640px){.tiles{grid-template-columns:repeat(3,1fr)}}
 .tile{position:relative;display:grid;gap:6px;align-content:start;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;padding:14px;cursor:pointer;font:inherit;min-height:132px}
@@ -539,6 +549,7 @@ const LABELS = [
 
 // ---------- Secciones ----------
 const ICON = {
+  calendario:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   todo:'<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/>',
   luminarias:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
   drenaje:'<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8.5 8v8M12 8v8M15.5 8v8"/>',
@@ -818,7 +829,7 @@ function modal(html,cls){ const m=document.createElement("div"); m.className="mo
 
 // ---------- Navegación ----------
 // Páginas (sin mapa) y su título
-const PAGES = {"":"Trinidad de las Huertas", reportes:"Reportar un problema", buscar:"Seguimiento de reportes", comite:"Conoce a tu comité", reglamentos:"Reglamentos", numeros:"Números oficiales"};
+const PAGES = {"":"Trinidad de las Huertas", reportes:"Reportar un problema", buscar:"Seguimiento de reportes", comite:"Conoce a tu comité", reglamentos:"Reglamentos", numeros:"Números oficiales", agua:"Suministro de agua"};
 const isPage = k=>Object.prototype.hasOwnProperty.call(PAGES,k);
 const isReportArea = k=>k==="reportes"||k==="buscar"||k==="todo"||!!CATS[k];
 const parentOf = k=>(k==="todo"||CATS[k])?"reportes":"";
@@ -828,7 +839,7 @@ function renderCats(){
   const nRep = isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
   $("cats").innerHTML = isReportArea(cat)
     ? chip("","Inicio","") + chip("reportes","Reportar","reportar") + chip("buscar","Seguimiento","buscar") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("")
-    : chip("","Inicio","") + chip("reportes","Reportar un problema","reportar",nRep) + chip("buscar","Seguimiento","buscar") + chip("lugares","Negocios y lugares","lugares",nLug) + chip("numeros","Números oficiales","telefono") + chip("comite","Comité","comite") + chip("reglamentos","Reglamentos","reglamento");
+    : chip("","Inicio","") + chip("reportes","Reportar un problema","reportar",nRep) + chip("buscar","Seguimiento","buscar") + chip("lugares","Negocios y lugares","lugares",nLug) + chip("agua","Agua","fugas") + chip("numeros","Números oficiales","telefono") + chip("comite","Comité","comite") + chip("reglamentos","Reglamentos","reglamento");
   $("cats").querySelectorAll(".chip").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
   const a=$("cats").querySelector('[aria-pressed="true"]'); if(a&&a.scrollIntoView) a.scrollIntoView({inline:"nearest",block:"nearest"});
 }
@@ -926,10 +937,120 @@ const getReglas = ()=>Array.isArray(contenido.reglamentos)?contenido.reglamentos
 const getNumeros = ()=>Array.isArray(contenido.numeros)?contenido.numeros:DEF_NUMEROS;
 const driveView = id=>`https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
 const telHref = t=>"tel:"+String(t||"").replace(/[^\d+]/g,"");
+// ---------- Suministro de agua ----------
+// Avisos oficiales de SOAPA / Agua Bienestar. El comité agrega cada nuevo aviso; la fecha estimada se calcula sola.
+const TURNOS_AGUA=["Matutino","Matutino-vespertino","Vespertino","Vespertino-nocturno","Nocturno"];
+const SOAPA_TEL="951 501 59 30", SOAPA_EXT="Ext. 101 a la 108", SOAPA_WA="951 184 5514";
+const DEF_AGUA={ciclo:35, registros:[
+  {id:"a0418",fecha:"2026-04-18",turno:"Nocturno",foto:"agua/2026-04-18.jpg"},
+  {id:"a0522",fecha:"2026-05-22",turno:"Matutino-vespertino",foto:"agua/2026-05-22.jpg"},
+  {id:"a0619",fecha:"2026-06-19",turno:"Vespertino-nocturno",foto:"agua/2026-06-19.jpg"},
+  {id:"a0718",fecha:"2026-07-18",turno:"Matutino-vespertino",foto:"agua/2026-07-18.jpg"},
+  {id:"a0820",fecha:"2026-08-20",turno:"Matutino-vespertino",foto:"agua/2026-08-20.jpg"},
+  {id:"a0919",fecha:"2026-09-19",turno:"Vespertino-nocturno",foto:"agua/2026-09-19.jpg"}]};
+const getAgua=()=>{ const a=contenido.agua&&Array.isArray(contenido.agua.registros)?contenido.agua:DEF_AGUA; return {ciclo:Number(a.ciclo)||35, registros:a.registros}; };
+const aguaFoto=f=>!f?"":/[\/.]/.test(f)?f:fotoURL(f);
+const DIAS_SEM=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const dLocal=s=>{ const [y,m,d]=String(s).split("-").map(Number); return new Date(y,(m||1)-1,d||1); };
+const isoLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const masDias=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const difDias=(a,b)=>Math.round((dLocal(isoLocal(b))-dLocal(isoLocal(a)))/864e5);
+const fAgua=d=>`${DIAS_SEM[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+const fAguaCorta=d=>`${DIAS_SEM[d.getDay()].slice(0,3)} ${d.getDate()} ${MESES[d.getMonth()].slice(0,3)}`;
+function aguaCalc(){
+  const {ciclo,registros}=getAgua(); const rs=registros.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.fecha)).slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  if(!rs.length) return null;
+  rs.forEach((r,i)=>{ r._d=dLocal(r.fecha); r._int=i?difDias(rs[i-1]._d,r._d):null; });
+  const ints=rs.filter(r=>r._int).map(r=>r._int).slice(-6); const prom=ints.length?Math.round(ints.reduce((a,b)=>a+b,0)/ints.length):ciclo;
+  const ult=rs[rs.length-1], hoy=dLocal(isoLocal(new Date())), limite=masDias(ult._d,ciclo), probable=masDias(ult._d,Math.min(prom,ciclo));
+  const transcurridos=difDias(ult._d,hoy), faltan=difDias(hoy,limite);
+  return {ciclo,rs,ints,prom,min:ints.length?Math.min(...ints):null,max:ints.length?Math.max(...ints):null,ult,limite,probable,transcurridos,faltan,pct:Math.max(0,Math.min(100,Math.round(transcurridos/ciclo*100)))};
+}
+function aguaEstado(c){
+  if(c.faltan>1) return {t:`Faltan ${c.faltan} días`,col:"#2f6fd6"};
+  if(c.faltan===1) return {t:"Mañana se cumple el plazo",col:"var(--gold)"};
+  if(c.faltan===0) return {t:"Hoy se cumple el plazo",col:"var(--gold)"};
+  return {t:`Plazo vencido hace ${-c.faltan} ${c.faltan===-1?"día":"días"}`,col:"var(--rep)"};
+}
+function aguaCardH(){ const c=aguaCalc(); if(!c) return ""; const e=aguaEstado(c);
+  return `<button type="button" class="aguacard" id="hAgua"><span class="ic">${svgI("fugas")}</span><span class="b"><span class="k">Suministro de agua</span>
+    <span class="t">${c.faltan>=0?`Próximo: a más tardar el ${esc(fAguaCorta(c.limite))}`:`Ya pasaron ${c.transcurridos} días del último`}</span>
+    <span class="bar"><i style="width:${c.pct}%;background:${e.col}"></i></span><span class="s" style="color:${e.col}">${esc(e.t)}</span></span></button>`; }
+function aguaICS(c){
+  const d=c.limite, d2=masDias(d,1), f=x=>isoLocal(x).replace(/-/g,""), now=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Comite Vecinal Trinidad de las Huertas//Agua//ES","CALSCALE:GREGORIAN","BEGIN:VEVENT",
+    `UID:agua-${f(d)}@trinidad-huertas`,`DTSTAMP:${now}`,`DTSTART;VALUE=DATE:${f(d)}`,`DTEND;VALUE=DATE:${f(d2)}`,
+    "SUMMARY:Suministro de agua (fecha límite estimada)",
+    `DESCRIPTION:Último suministro: ${fAgua(c.ult._d)}. Según el ciclo de ${c.ciclo} días\\, el agua debe llegar a más tardar este día. Reportes SOAPA: ${SOAPA_TEL} (${SOAPA_EXT})\\, WhatsApp ${SOAPA_WA}.`,
+    "BEGIN:VALARM","TRIGGER:-P2D","ACTION:DISPLAY","DESCRIPTION:Revisa tinaco y cisterna: se acerca el suministro de agua","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([ics],{type:"text/calendar"})); a.download="suministro-agua.ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+}
+function verAviso(src,t){ const m=modal(`<h3>${esc(t)}</h3><div class="foto" style="margin:0"><img src="${esc(src)}" alt="${esc(t)}" referrerpolicy="no-referrer"></div><div class="row"><a class="btn" href="${esc(src)}" target="_blank" rel="noopener">Abrir en grande</a><button type="button" class="btn primary" id="avOk">Cerrar</button></div>`,"wide"); m.querySelector("#avOk").onclick=()=>m.remove(); }
+function renderAgua(){
+  const c=aguaCalc();
+  if(!c){ $("home").innerHTML=`<div class="wrap"><div class="empty">Aún no hay suministros registrados.</div>${editBtn("agNew","+ Registrar suministro")}</div>`; const n=$("agNew"); if(n) n.onclick=()=>editAgua(-1); return; }
+  const e=aguaEstado(c); const lista=c.rs.slice().reverse();
+  $("home").innerHTML=`<div class="wrap">
+    <section class="aguahero"><div class="k">Próximo suministro estimado</div>
+      <div class="t">A más tardar el ${esc(fAgua(c.limite))}</div>
+      <div class="s">${c.ints.length>=2&&c.prom<c.ciclo?`Lo más probable es que llegue desde el <b>${esc(fAgua(c.probable))}</b>: en promedio llega cada ${c.prom} días.`:`El municipio indica un ciclo de ${c.ciclo} días.`}</div>
+      <div class="bar"><i style="width:${c.pct}%;background:${e.col==="#2f6fd6"?"#9cc3ff":e.col}"></i></div>
+      <div class="row2"><span>Van ${c.transcurridos} de ${c.ciclo} días desde el ${esc(fAguaCorta(c.ult._d))}</span><b style="color:${e.col==="#2f6fd6"?"#fff":e.col==="var(--rep)"?"#ffb4ab":"#ffd98a"}">${esc(e.t)}</b></div></section>
+    ${c.faltan<0?`<div class="hint err" style="margin:0">Ya pasó el plazo de ${c.ciclo} días. Si en tu calle no ha llegado el agua, repórtalo a SOAPA y avísale al comité.</div>`:""}
+    <div class="biz-actions" style="margin:0">${c.faltan>=0?`<button type="button" class="btn primary" id="agIcs">${svgI("calendario",'width="17" height="17"')}Agregar a mi calendario</button>`:""}
+      ${c.ult.foto?`<button type="button" class="btn${c.faltan<0?" wide":""}" id="agUlt">Ver último aviso oficial</button>`:""}</div>
+    <div class="h3">Reportes de agua a SOAPA</div>
+    <div class="num"><div class="biz-actions" style="margin:0"><a class="btn primary" href="${telHref(SOAPA_TEL)}">Llamar ${SOAPA_TEL}</a><a class="btn wa" href="${waLink(SOAPA_WA,"Hola, les escribo del Fraccionamiento Trinidad de las Huertas para reportar el suministro de agua.")}" target="_blank" rel="noopener">WhatsApp</a></div>
+      <div class="meta" style="margin:8px 0 0">${SOAPA_EXT}. El WhatsApp ${SOAPA_WA} es exclusivo para reportes por mensaje.</div></div>
+    <div class="h3">Mientras llega</div>
+    <div class="num aguatips"><p>Revisa que no haya fugas y que <b>flotadores y llaves de paso</b> funcionen bien, para que no se interrumpa el suministro cuando llegue el agua.</p><p>Ten <b>limpios tinacos y cisternas</b> para guardar la mayor cantidad posible.</p><p>Cuida el agua: junta en una cubeta el agua fría de la regadera, cierra la llave al enjabonar y lava ropa con carga completa.</p></div>
+    <div class="h3">Historial de suministros${c.ints.length?` · promedio ${c.prom} días`:""}</div>
+    <div class="mine">${lista.map(r=>{ const tarde=r._int&&r._int>c.ciclo; return `<div class="li aguali">
+      ${r.foto?`<button type="button" class="th" data-av="${esc(r.id)}" aria-label="Ver aviso del ${esc(fAgua(r._d))}"><img src="${esc(aguaFoto(r.foto))}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`:`<span class="th">${svgI("fugas")}</span>`}
+      <span class="b"><span class="p">${esc(fAgua(r._d))} ${r._d.getFullYear()}</span><span class="s">${esc(r.turno||"Turno sin indicar")}${r.nota?" · "+esc(r.nota):""}</span></span>
+      ${r._int?`<span class="pill" style="background:${tarde?"var(--rep)":"var(--done)"}">${r._int} días</span>`:""}
+      ${isComite()?`<button type="button" class="x2" data-ae="${esc(r.id)}" aria-label="Editar">✎</button>`:""}</div>`; }).join("")}</div>
+    ${c.ints.length?`<div class="hint">Días entre cada suministro: de ${c.min} a ${c.max}. En verde, los que llegaron dentro de los ${c.ciclo} días. La fecha estimada es un cálculo del comité con los avisos oficiales; la programación de SOAPA depende del caudal, de fallas eléctricas o de fugas.</div>`:""}
+    ${isComite()?`<div class="actions"><button type="button" class="btn primary" id="agNew">+ Registrar suministro</button><button type="button" class="btn" id="agCiclo">Ciclo: ${c.ciclo} días</button></div>`:""}
+  </div>`;
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on("agIcs",()=>{ aguaICS(c); toast("Abre el archivo para guardarlo en tu calendario"); }); on("agUlt",()=>verAviso(aguaFoto(c.ult.foto),"Aviso del "+fAgua(c.ult._d)));
+  on("agNew",()=>editAgua(-1)); on("agCiclo",editCiclo);
+  $("home").querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>{ const r=c.rs.find(x=>x.id===b.dataset.av); verAviso(aguaFoto(r.foto),"Aviso del "+fAgua(r._d)); });
+  $("home").querySelectorAll("[data-ae]").forEach(b=>b.onclick=()=>editAgua(getAgua().registros.findIndex(x=>x.id===b.dataset.ae)));
+}
+async function guardarAgua(data,msg){ await api("contenidoGuardar",{clave:"agua",data}); contenido.agua=data; toast(msg); renderPage(); }
+function editCiclo(){ const a=JSON.parse(JSON.stringify(getAgua()));
+  const m=modal(`<form style="display:grid;gap:12px"><h3>Ciclo de suministro</h3><label>Cada cuántos días debe llegar el agua<input id="agC" type="number" min="7" max="90" value="${a.ciclo}" required></label><div class="hint err" id="agCe" hidden></div><div class="row"><button type="button" class="btn" id="agCn">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto">Guardar</button></div></form>`);
+  m.querySelector("#agCn").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); a.ciclo=Math.max(7,Math.min(90,Number(m.querySelector("#agC").value)||35)); try{ await guardarAgua(a,"Ciclo guardado"); m.remove(); }catch(e){ const x=m.querySelector("#agCe"); x.textContent=errTxt(e); x.hidden=false; } }; }
+function editAgua(i){
+  const a=JSON.parse(JSON.stringify(getAgua())); const r=i>=0?a.registros[i]:{id:"a"+Date.now().toString(36),fecha:isoLocal(new Date()),turno:""};
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${i>=0?"Editar suministro":"Registrar suministro"}</h3>
+    <div class="hint" style="margin:0">Captura la fecha que viene en el aviso oficial de SOAPA. La app recalcula sola la fecha del siguiente suministro.</div>
+    <div class="row2"><label>Fecha del suministro<input id="agF" type="date" value="${esc(r.fecha)}" required></label>
+      <label>Turno<select id="agT"><option value="">Sin indicar</option>${TURNOS_AGUA.map(t=>`<option${r.turno===t?" selected":""}>${t}</option>`).join("")}</select></label></div>
+    <label>Nota (opcional)<input id="agN" value="${esc(r.nota)}" maxlength="120" placeholder="Ej. llegó con poca presión en la parte alta"></label>
+    <div class="seglbl">Aviso oficial (imagen)</div><div class="hint" style="margin:0" id="agFt">${r.foto?"Ya tiene aviso. Sube otro solo si quieres cambiarlo.":"Sin imagen"}</div>
+    <label class="btn fotobtn" for="agI">${svgCam}${r.foto?"Cambiar imagen del aviso":"Subir imagen del aviso"}</label><input type="file" id="agI" accept="image/*" hidden>
+    <div class="hint err" id="agE" hidden></div>
+    <div class="row">${i>=0?`<button type="button" class="btn danger" id="agDel">Quitar</button>`:""}<button type="button" class="btn" id="agNo">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="agOk">Guardar</button></div></form>`,"wide");
+  let file=null; m.querySelector("#agI").onchange=e=>{ file=e.target.files&&e.target.files[0]; if(file){ const x=m.querySelector("#agFt"); x.textContent="Se subirá: "+file.name; x.className="hint ok"; } };
+  m.querySelector("#agNo").onclick=()=>m.remove();
+  const err=e=>{ const x=m.querySelector("#agE"); x.textContent=e.msg||errTxt(e); x.hidden=false; const b=m.querySelector("#agOk"); b.disabled=false; b.textContent="Guardar"; };
+  const del=m.querySelector("#agDel"); if(del) del.onclick=async()=>{ if(del.dataset.ok!=="1"){ del.dataset.ok="1"; del.textContent="¿Seguro? Toca otra vez"; return; } a.registros.splice(i,1); try{ await guardarAgua(a,"Suministro quitado"); m.remove(); }catch(e){ err(e); } };
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); const b=m.querySelector("#agOk"); b.disabled=true; b.textContent="Guardando…";
+    try{ const f=m.querySelector("#agF").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(f)) throw {msg:"Escribe la fecha del suministro."};
+      if(a.registros.some((x,j)=>j!==i&&x.fecha===f)) throw {msg:"Ya hay un suministro registrado en esa fecha."};
+      r.fecha=f; r.turno=m.querySelector("#agT").value; r.nota=m.querySelector("#agN").value.trim();
+      if(file){ const b64=await resizeImage(file,1400); const up=await api("archivoSubir",{data:b64,mime:"image/jpeg",nombre:"aviso_agua_"+f}); r.foto=up.id; }
+      if(i>=0) a.registros[i]=r; else a.registros.push(r);
+      await guardarAgua(a,i>=0?"Suministro actualizado":"Suministro registrado"); m.remove(); }catch(e){ err(e); } };
+}
 function renderPage(){
   const u=S.user; if(!u) return;
-  if(!loaded&&cat!=="comite"&&cat!=="reglamentos"&&cat!=="numeros"){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
-  ({"":renderInicio, reportes:renderReportes, buscar:renderBuscar, comite:renderComite, reglamentos:renderReglamentos, numeros:renderNumeros})[cat]();
+  if(!loaded&&cat!=="comite"&&cat!=="reglamentos"&&cat!=="numeros"&&cat!=="agua"){ $("home").innerHTML='<div class="loading">Cargando datos del fraccionamiento…</div>'; return; }
+  ({"":renderInicio, reportes:renderReportes, buscar:renderBuscar, comite:renderComite, reglamentos:renderReglamentos, numeros:renderNumeros, agua:renderAgua})[cat]();
   wireRepLi($("home"));
   $("home").querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
   $("home").querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>setCat(b.dataset.go));
@@ -950,6 +1071,7 @@ function renderInicio(){
     ${nPedNeg?`<button type="button" class="alertcard" id="hPedNeg"><b>${nPedNeg}</b><span>${nPedNeg===1?"pedido nuevo en tu negocio":"pedidos nuevos en tu negocio"}</span></button>`:""}
     ${nBizPend?`<button type="button" class="alertcard" id="hBizPend"><b>${nBizPend}</b><span>${nBizPend===1?"negocio por aprobar":"negocios por aprobar"}</span></button>`:""}
     ${vitrinaH()}
+    ${aguaCardH()}
     <div class="tiles">
       ${tile("reportes","reportar","var(--accent)","Reportar un problema","Luminarias, drenaje, baches, fugas, apagones, basura y poda")}
       ${tile("buscar","buscar","#2f6fd6","Seguimiento de reportes","Busca un reporte y mira cómo va",misAb?String(misAb):"")}
@@ -963,7 +1085,7 @@ function renderInicio(){
     ${isComite()&&!catItems("luminarias").length?`<button type="button" class="alertcard" id="hImport"><span>Traer los postes de la página anterior (postes-trinidad)</span></button>`:""}
     <div class="foot">Comité Vecinal · ${esc(getComite().gestion||"")} · Oaxaca de Juárez</div></div>`;
   const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
-  on("hPend",()=>openPendientes("")); on("hPedNeg",()=>openPedidosNegocio()); on("hImport",()=>importar()); wireVitrina($("home"));
+  on("hPend",()=>openPendientes("")); on("hPedNeg",()=>openPedidosNegocio()); on("hImport",()=>importar()); wireVitrina($("home")); on("hAgua",()=>setCat("agua"));
   on("hBizPend",()=>{ setCat("lugares"); openDirectorio("pend"); }); on("hClave",()=>{ setCat("lugares"); chooseClave(); });
 }
 function renderReportes(){

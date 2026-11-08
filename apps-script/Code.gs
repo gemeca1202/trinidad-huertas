@@ -20,7 +20,7 @@ const ESTADOS_PED = ['recibido', 'preparando', 'camino', 'entregado', 'cancelado
 const H_CONTENIDO = ['clave', 'data', 'actualizado', 'por'];
 const H_PROMOS = ['id', 'lugarId', 'lugarNombre', 'titulo', 'descripcion', 'foto', 'desde', 'hasta', 'estado', 'creado', 'por'];
 const MAX_PROMOS = 3, DIAS_PROMO = 60;
-const CONTENIDOS = ['comite', 'reglamentos', 'numeros'];
+const CONTENIDOS = ['comite', 'reglamentos', 'numeros', 'agua'];
 const MIMES = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' };
 const CATEGORIAS = ['luminarias', 'drenaje', 'baches', 'fugas', 'apagones', 'basura', 'poda'];
 const INVENTARIO = ['luminarias', 'drenaje'];
@@ -637,7 +637,7 @@ function atender_(req) {
     try {
       const sh = hContenido_(); const fila = filas_(sh, H_CONTENIDO).find(r => r.clave === clave);
       escribirFila_(sh, H_CONTENIDO, fila ? fila._row : null, { clave: clave, data: txt, actualizado: ahora_(), por: u.usuario });
-      bitacora_(u, 'Actualizó ' + ({ comite: 'Conoce a tu comité', reglamentos: 'Reglamentos', numeros: 'Números oficiales' })[clave], '');
+      bitacora_(u, 'Actualizó ' + ({ comite: 'Conoce a tu comité', reglamentos: 'Reglamentos', numeros: 'Números oficiales', agua: 'Suministro de agua' })[clave], '');
       return { ok: true };
     } finally { lock.releaseLock(); }
   }
