@@ -598,7 +598,7 @@ function renderCats(){
   const nRep = isStaff()?reps.filter(r=>r.estado==="nuevo").length:0;
   $("cats").innerHTML = isReportArea(cat)
     ? chip("","Inicio","") + chip("reportes","Reportar","reportar") + chip("buscar","Seguimiento","buscar") + chip("todo","Mapa general","todo") + ORDER.map(k=>{ const st=stat(k); return chip(k,CATS[k].n,k,isStaff()?st.nuevos:0); }).join("")
-    : chip("","Inicio","") + chip("reportes","Reportar un problema","reportar",nRep) + chip("buscar","Seguimiento","buscar") + chip("lugares","Negocios y lugares","lugares",nLug) + chip("agua","Agua","fugas") + chip("numeros","Números oficiales","telefono") + chip("comite","Comité","comite") + chip("reglamentos","Reglamentos","reglamento");
+    : chip("","Inicio","") + chip("reportes","Reportar un problema","reportar",nRep) + chip("buscar","Seguimiento","buscar") + chip("lugares","Negocios y lugares","lugares",nLug) + (aguaVisible()?chip("agua","Agua","fugas"):"") + chip("numeros","Números oficiales","telefono") + chip("comite","Comité","comite") + chip("reglamentos","Reglamentos","reglamento");
   $("cats").querySelectorAll(".chip").forEach(b=>b.onclick=()=>setCat(b.dataset.k));
   const a=$("cats").querySelector('[aria-pressed="true"]'); if(a&&a.scrollIntoView) a.scrollIntoView({inline:"nearest",block:"nearest"});
 }
@@ -707,6 +707,8 @@ const DEF_AGUA={ciclo:35, registros:[
   {id:"a0718",fecha:"2026-07-18",turno:"Matutino-vespertino",foto:"agua/2026-07-18.jpg"},
   {id:"a0820",fecha:"2026-08-20",turno:"Matutino-vespertino",foto:"agua/2026-08-20.jpg"},
   {id:"a0919",fecha:"2026-09-19",turno:"Vespertino-nocturno",foto:"agua/2026-09-19.jpg"}]};
+// Los vecinos ven la sección cuando el comité guarda el primer registro (así nunca ven fechas desactualizadas).
+const aguaVisible=()=>isComite()||!!(contenido.agua&&Array.isArray(contenido.agua.registros));
 const getAgua=()=>{ const a=contenido.agua&&Array.isArray(contenido.agua.registros)?contenido.agua:DEF_AGUA; return {ciclo:Number(a.ciclo)||35, registros:a.registros}; };
 const aguaFoto=f=>!f?"":/[\/.]/.test(f)?f:fotoURL(f);
 const DIAS_SEM=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
@@ -731,7 +733,7 @@ function aguaEstado(c){
   if(c.faltan===0) return {t:"Hoy se cumple el plazo",col:"var(--gold)"};
   return {t:`Plazo vencido hace ${-c.faltan} ${c.faltan===-1?"día":"días"}`,col:"var(--rep)"};
 }
-function aguaCardH(){ const c=aguaCalc(); if(!c) return ""; const e=aguaEstado(c);
+function aguaCardH(){ if(!aguaVisible()) return ""; const c=aguaCalc(); if(!c) return ""; const e=aguaEstado(c);
   return `<button type="button" class="aguacard" id="hAgua"><span class="ic">${svgI("fugas")}</span><span class="b"><span class="k">Suministro de agua</span>
     <span class="t">${c.faltan>=0?`Próximo: a más tardar el ${esc(fAguaCorta(c.limite))}`:`Ya pasaron ${c.transcurridos} días del último`}</span>
     <span class="bar"><i style="width:${c.pct}%;background:${e.col}"></i></span><span class="s" style="color:${e.col}">${esc(e.t)}</span></span></button>`; }
@@ -746,6 +748,7 @@ function aguaICS(c){
 }
 function verAviso(src,t){ const m=modal(`<h3>${esc(t)}</h3><div class="foto" style="margin:0"><img src="${esc(src)}" alt="${esc(t)}" referrerpolicy="no-referrer"></div><div class="row"><a class="btn" href="${esc(src)}" target="_blank" rel="noopener">Abrir en grande</a><button type="button" class="btn primary" id="avOk">Cerrar</button></div>`,"wide"); m.querySelector("#avOk").onclick=()=>m.remove(); }
 function renderAgua(){
+  if(!aguaVisible()){ $("home").innerHTML='<div class="wrap"><div class="empty">El comité está preparando esta sección.</div></div>'; return; }
   const c=aguaCalc();
   if(!c){ $("home").innerHTML=`<div class="wrap"><div class="empty">Aún no hay suministros registrados.</div>${editBtn("agNew","+ Registrar suministro")}</div>`; const n=$("agNew"); if(n) n.onclick=()=>editAgua(-1); return; }
   const e=aguaEstado(c); const lista=c.rs.slice().reverse();
@@ -763,6 +766,7 @@ function renderAgua(){
       <div class="meta" style="margin:8px 0 0">${SOAPA_EXT}. El WhatsApp ${SOAPA_WA} es exclusivo para reportes por mensaje.</div></div>
     <div class="h3">Mientras llega</div>
     <div class="num aguatips"><p>Revisa que no haya fugas y que <b>flotadores y llaves de paso</b> funcionen bien, para que no se interrumpa el suministro cuando llegue el agua.</p><p>Ten <b>limpios tinacos y cisternas</b> para guardar la mayor cantidad posible.</p><p>Cuida el agua: junta en una cubeta el agua fría de la regadera, cierra la llave al enjabonar y lava ropa con carga completa.</p></div>
+    ${isComite()&&!contenido.agua?`<div class="hint" style="margin:0">Solo el comité ve esta sección por ahora. Registra el suministro más reciente con «+ Registrar suministro» y desde ese momento la verán todos los vecinos.</div>`:""}
     <div class="h3">Historial de suministros${c.ints.length?` · promedio ${c.prom} días`:""}</div>
     <div class="mine">${lista.map(r=>{ const tarde=r._int&&r._int>c.ciclo; return `<div class="li aguali">
       ${r.foto?`<button type="button" class="th" data-av="${esc(r.id)}" aria-label="Ver aviso del ${esc(fAgua(r._d))}"><img src="${esc(aguaFoto(r.foto))}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`:`<span class="th">${svgI("fugas")}</span>`}
