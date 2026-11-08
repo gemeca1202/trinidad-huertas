@@ -189,7 +189,8 @@ function datos_(u) {
   const visibles = {}; lugares.forEach(l => { if (l.clase === 'negocio' && (l.estado === 'aprobado' || l.mio || u.rol === 'comite')) visibles[l.id] = l; });
   const promos = filas_(hPromos_(), H_PROMOS).map(promoDe_).filter(p => visibles[p.lugarId] && (promoVigente_(p) || (visibles[p.lugarId].mio && p.estado === 'activa')))
     .map(p => { delete p._row; p.vigente = promoVigente_(p); return p; });
-  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos, promos: promos, contenido: contenido_() };
+  const extra = u.rol === 'comite' ? { claveBorrar: !!PROPS.getProperty('CLAVE_BORRAR') } : {};
+  return Object.assign({ items: items, reportes: out, lugares: lugares, pedidos: pedidos, promos: promos, contenido: contenido_() }, extra);
 }
 function lugarDe_(r) {
   let d = {}; try { d = JSON.parse(r.data || '{}'); } catch (e) { }
@@ -602,6 +603,30 @@ function atender_(req) {
       if (!fila) return { ok: false, error: 'no_existe' };
       sh.deleteRow(fila._row);
       bitacora_(u, 'Eliminó ' + fila.categoria, `#${fila.num} ${fila.codigo}`);
+      return { ok: true };
+    } finally { lock.releaseLock(); }
+  }
+  if (a === 'claveBorrarConfigurar') {
+    const actual = PROPS.getProperty('CLAVE_BORRAR');
+    if (actual) {
+      if (intentos_('borrar_' + u.usuario) >= 5) return { ok: false, error: 'bloqueo_temporal' };
+      if (String(req.actual || '') !== actual) { intentos_('borrar_' + u.usuario, true); return { ok: false, error: 'clave' }; }
+    }
+    const nueva = String(req.nueva || ''); if (nueva.length < 6) return { ok: false, error: 'pw_corta' };
+    PROPS.setProperty('CLAVE_BORRAR', nueva);
+    bitacora_(u, actual ? 'Cambió la clave para eliminar reportes' : 'Creó la clave para eliminar reportes', '');
+    return { ok: true };
+  }
+  if (a === 'reporteBorrar') {
+    const clave = PROPS.getProperty('CLAVE_BORRAR'); if (!clave) return { ok: false, error: 'sin_clave_borrar' };
+    if (intentos_('borrar_' + u.usuario) >= 5) return { ok: false, error: 'bloqueo_temporal' };
+    if (String(req.clave || '') !== clave) { intentos_('borrar_' + u.usuario, true); bitacora_(u, 'Intento fallido de eliminar reporte', String(req.rid || '')); return { ok: false, error: 'clave' }; }
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hReportes_(); const r = filas_(sh, H_REPORTES).map(reporteDe_).find(x => x.rid === String(req.rid));
+      if (!r) return { ok: false, error: 'no_existe' };
+      sh.deleteRow(r._row);
+      bitacora_(u, 'Eliminó reporte', `${r.categoria} · ${r.tipo} · folio ${r.rid} · reportó ${r.nombre} (${r.fecha.slice(0, 10)})`);
       return { ok: true };
     } finally { lock.releaseLock(); }
   }
