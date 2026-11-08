@@ -18,6 +18,8 @@ const H_PEDIDOS = ['pid', 'fecha', 'lugarId', 'lugarNombre', 'cliente', 'nombre'
   'estado', 'fechaEstado', 'dlat', 'dlon', 'historial'];
 const ESTADOS_PED = ['recibido', 'preparando', 'camino', 'entregado', 'cancelado'];
 const H_CONTENIDO = ['clave', 'data', 'actualizado', 'por'];
+const H_PROMOS = ['id', 'lugarId', 'lugarNombre', 'titulo', 'descripcion', 'foto', 'desde', 'hasta', 'estado', 'creado', 'por'];
+const MAX_PROMOS = 3, DIAS_PROMO = 60;
 const CONTENIDOS = ['comite', 'reglamentos', 'numeros'];
 const MIMES = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' };
 const CATEGORIAS = ['luminarias', 'drenaje', 'baches', 'fugas', 'apagones', 'basura', 'poda'];
@@ -55,6 +57,9 @@ const hBitacora_ = () => hoja_('Bitácora', H_BITACORA);
 const hLugares_ = () => hoja_('Lugares', H_LUGARES);
 const hPedidos_ = () => hoja_('Pedidos', H_PEDIDOS);
 const hContenido_ = () => hoja_('Contenido', H_CONTENIDO);
+const hPromos_ = () => hoja_('Promociones', H_PROMOS);
+function promoDe_(r) { const iso = v => v instanceof Date ? v.toISOString() : String(v || ''); return { id: String(r.id), lugarId: String(r.lugarId), lugarNombre: String(r.lugarNombre), titulo: String(r.titulo), descripcion: String(r.descripcion || ''), foto: String(r.foto || ''), desde: iso(r.desde), hasta: iso(r.hasta), estado: String(r.estado || 'activa'), creado: iso(r.creado), _row: r._row }; }
+const promoVigente_ = p => p.estado === 'activa' && new Date(p.hasta).getTime() >= Date.now();
 function contenido_() {
   const o = {}; filas_(hContenido_(), H_CONTENIDO).forEach(r => { try { o[r.clave] = JSON.parse(r.data || 'null'); } catch (e) { } });
   return o;
@@ -119,9 +124,10 @@ function verificar_(token) {
 function bitacora_(u, accion, detalle) {
   try { hBitacora_().appendRow([ahora_(), u ? u.usuario : '', u ? u.nombre : '', accion, limpiar_(detalle, 400)]); } catch (e) { }
 }
-function guardarFoto_(b64, nombre) {
-  if (!b64 || b64.length > 2.8e6) throw new Error('foto');
-  const blob = Utilities.newBlob(Utilities.base64Decode(b64), 'image/jpeg', nombre + '.jpg');
+function guardarFoto_(b64, nombre, mime) {
+  mime = mime === 'application/pdf' ? mime : 'image/jpeg';
+  if (!b64 || b64.length > (mime === 'application/pdf' ? 14e6 : 2.8e6)) throw new Error('foto');
+  const blob = Utilities.newBlob(Utilities.base64Decode(b64), mime, nombre + (mime === 'application/pdf' ? '.pdf' : '.jpg'));
   const f = carpetaFotos_().createFile(blob);
   f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return f.getId();
@@ -180,7 +186,10 @@ function datos_(u) {
     const abierto = ['recibido', 'preparando', 'camino'].indexOf(p.estado) >= 0;
     return abierto || new Date(p.fecha).getTime() > hace60;
   }).map(p => { p.soyCliente = normUsuario_(p.cliente) === normUsuario_(u.usuario); p.soyNegocio = !!mios[p.lugarId]; delete p._row; return p; });
-  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos, contenido: contenido_() };
+  const visibles = {}; lugares.forEach(l => { if (l.clase === 'negocio' && (l.estado === 'aprobado' || l.mio || u.rol === 'comite')) visibles[l.id] = l; });
+  const promos = filas_(hPromos_(), H_PROMOS).map(promoDe_).filter(p => visibles[p.lugarId] && (promoVigente_(p) || (visibles[p.lugarId].mio && p.estado === 'activa')))
+    .map(p => { delete p._row; p.vigente = promoVigente_(p); return p; });
+  return { items: items, reportes: out, lugares: lugares, pedidos: pedidos, promos: promos, contenido: contenido_() };
 }
 function lugarDe_(r) {
   let d = {}; try { d = JSON.parse(r.data || '{}'); } catch (e) { }
@@ -373,13 +382,45 @@ function atender_(req) {
     const sh = hLugares_(); const l = filas_(sh, H_LUGARES).map(lugarDe_).find(x => x.id === String(req.id));
     if (!l) return { ok: false, error: 'no_existe' };
     if (!comite && normUsuario_(l.dueno) !== normUsuario_(u.usuario)) return { ok: false, error: 'permiso' };
-    const foto = guardarFoto_(req.data, 'lugar_' + l.id + '_' + Date.now());
     const campo = req.campo === 'menuFoto' ? 'menuFoto' : 'foto';
-    const d = Object.assign({}, l); delete d._row; d[campo] = foto;
+    const esPdf = campo === 'menuFoto' && req.mime === 'application/pdf';
+    const foto = guardarFoto_(req.data, 'lugar_' + l.id + '_' + Date.now(), esPdf ? 'application/pdf' : 'image/jpeg');
+    const d = Object.assign({}, l); delete d._row; d[campo] = foto; if (campo === 'menuFoto') d.menuTipo = esPdf ? 'pdf' : 'img';
     if (campo === 'foto') sh.getRange(l._row, H_LUGARES.indexOf('foto') + 1).setValue(foto);
     sh.getRange(l._row, H_LUGARES.indexOf('data') + 1).setValue(JSON.stringify(d).slice(0, 45000));
     bitacora_(u, campo === 'foto' ? 'Foto de lugar' : 'Foto de menú', l.nombre);
     return { ok: true, foto: foto, campo: campo };
+  }
+  if (a === 'promoGuardar') {
+    const l = filas_(hLugares_(), H_LUGARES).map(lugarDe_).find(x => x.id === String(req.lugarId));
+    if (!l || l.clase !== 'negocio') return { ok: false, error: 'no_existe' };
+    if (!comite && normUsuario_(l.dueno) !== normUsuario_(u.usuario)) return { ok: false, error: 'permiso' };
+    if (l.estado !== 'aprobado') return { ok: false, error: 'no_aprobado' };
+    const titulo = limpiar_(req.titulo, 80); if (titulo.length < 3) return { ok: false, error: 'faltan_datos' };
+    let hasta = new Date(String(req.hasta || '') + 'T23:59:59'); const max = new Date(Date.now() + DIAS_PROMO * 864e5);
+    if (isNaN(hasta.getTime()) || hasta.getTime() < Date.now()) return { ok: false, error: 'fecha' };
+    if (hasta > max) hasta = max;
+    const lock = LockService.getScriptLock(); lock.waitLock(20000);
+    try {
+      const sh = hPromos_(); const todas = filas_(sh, H_PROMOS).map(promoDe_);
+      const prev = req.id ? todas.find(x => x.id === String(req.id) && x.lugarId === l.id) : null;
+      if (!prev && todas.filter(x => x.lugarId === l.id && promoVigente_(x)).length >= MAX_PROMOS) return { ok: false, error: 'max_promos' };
+      const foto = req.foto ? guardarFoto_(req.foto, 'promo_' + l.id + '_' + Date.now()) : (prev ? prev.foto : '');
+      const p = { id: prev ? prev.id : nuevoId_('pr'), lugarId: l.id, lugarNombre: l.nombre, titulo: titulo, descripcion: limpiar_(req.descripcion, 400), foto: foto,
+        desde: prev ? prev.desde : ahora_(), hasta: hasta.toISOString(), estado: 'activa', creado: prev ? prev.creado : ahora_(), por: u.usuario };
+      escribirFila_(sh, H_PROMOS, prev ? prev._row : null, p);
+      bitacora_(u, prev ? 'Editó promoción' : 'Publicó promoción', `${l.nombre} · ${titulo}`);
+      return { ok: true, promo: Object.assign(p, { vigente: true }) };
+    } finally { lock.releaseLock(); }
+  }
+  if (a === 'promoQuitar') {
+    const sh = hPromos_(); const p = filas_(sh, H_PROMOS).map(promoDe_).find(x => x.id === String(req.id));
+    if (!p) return { ok: false, error: 'no_existe' };
+    const l = filas_(hLugares_(), H_LUGARES).map(lugarDe_).find(x => x.id === p.lugarId);
+    if (!comite && !(l && normUsuario_(l.dueno) === normUsuario_(u.usuario))) return { ok: false, error: 'permiso' };
+    sh.getRange(p._row, H_PROMOS.indexOf('estado') + 1).setValue(comite && !(l && normUsuario_(l.dueno) === normUsuario_(u.usuario)) ? 'quitada_comite' : 'quitada');
+    bitacora_(u, 'Quitó promoción', `${p.lugarNombre} · ${p.titulo}`);
+    return { ok: true };
   }
   if (a === 'lugarEstado') {
     if (!comite) return { ok: false, error: 'permiso' };
@@ -649,7 +690,7 @@ function atender_(req) {
 
 /** Ejecutar una vez desde el editor: crea la hoja, las pestañas y la carpeta de fotos. */
 function instalar() {
-  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); hLugares_(); hPedidos_(); hContenido_(); carpetaFotos_(); secreto_();
+  hUsuarios_(); hItems_(); hReportes_(); hBitacora_(); hLugares_(); hPedidos_(); hContenido_(); hPromos_(); carpetaFotos_(); secreto_();
   if (!PROPS.getProperty('CLAVE')) PROPS.setProperty('CLAVE', 'CAMBIAR-ESTA-CLAVE');
   Logger.log('Hoja: ' + ss_().getUrl());
 }

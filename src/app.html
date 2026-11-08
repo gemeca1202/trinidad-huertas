@@ -153,6 +153,21 @@ body{touch-action:auto}
 .medit .mr.mr3{grid-template-columns:1fr 1.4fr 36px}
 .secs{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
 .secs label.check{font-size:14px}
+.vitrina{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,72%);gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:thin}
+@media (min-width:640px){.vitrina{grid-auto-columns:240px}}
+.promo{scroll-snap-align:start;display:grid;grid-template-rows:auto 1fr;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left}
+.promo img,.promo .pimg{width:100%;aspect-ratio:16/9;object-fit:cover;display:grid;place-items:center;color:#fff;background:var(--bg)}
+.promo .pimg svg{width:40px;height:40px;opacity:.9}
+.promo .pb{display:grid;gap:3px;padding:10px 12px 12px}
+.promo .pt{font:800 15px var(--display);line-height:1.2;text-wrap:balance}
+.promo .pn{font:600 13px var(--body);color:#0f766e}
+.promo .pd{font-size:13px;color:var(--muted);line-height:1.35}
+.promo .pv{font:700 11px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+.promo .pa{display:flex;gap:6px;margin-top:6px}.promo .pa .btn{padding:6px 10px;font-size:13px}
+.promos-list{display:grid;gap:10px;margin:0 0 14px}
+.promos-list .promo{cursor:default;grid-template-columns:110px 1fr;grid-template-rows:none}
+.promos-list .promo img,.promos-list .promo .pimg{aspect-ratio:auto;height:100%;min-height:110px}
+.promo-cta{border-style:dashed}
 /* Negocios y lugares */
 .vin{cursor:pointer}
 .vin rect.bg{fill:var(--panel);stroke:var(--accent);stroke-width:1.5}
@@ -346,7 +361,7 @@ const GIROS = {comida:["Comida","comida"], cafe:["Cafetería","cafe"], pan:["Pan
 const SUGERIDOS = [["Cancha de fútbol","cancha",17.05399,-96.715902],["Capilla de Nuestra Señora de Guadalupe","templo"],["Glorieta de Chedraui","glorieta",17.052696,-96.716127]];
 const PEST = {recibido:["Recibido","var(--rep)"], preparando:["Preparando","var(--gold)"], camino:["En camino","#2f6fd6"], entregado:["Entregado","var(--done)"], cancelado:["Cancelado","var(--muted)"]};
 const BIZ_COL = "#0f766e";
-const ERR = {credenciales:"Usuario o contraseña incorrectos.", usuario_existe:"Ese usuario ya existe. Elige otro.", usuario_invalido:"El usuario debe tener de 3 a 30 letras o números, sin espacios ni acentos (puedes usar punto o guion).",
+const ERR = {no_aprobado:"El comité debe aprobar tu negocio antes de que publiques promociones.", max_promos:"Ya tienes 3 promociones activas. Quita una para publicar otra.", fecha:"Elige una fecha de vigencia válida (hoy o después).", tipo_archivo:"Ese tipo de archivo no se puede subir.", credenciales:"Usuario o contraseña incorrectos.", usuario_existe:"Ese usuario ya existe. Elige otro.", usuario_invalido:"El usuario debe tener de 3 a 30 letras o números, sin espacios ni acentos (puedes usar punto o guion).",
   pw_corta:"La contraseña debe tener al menos 6 caracteres.", faltan_datos:"Completa tu nombre, calle y número de casa.", bloqueado:"Tu cuenta está bloqueada. Habla con el comité.",
   bloqueo_temporal:"Demasiados intentos. Espera 15 minutos.", red:"Sin conexión con la hoja de datos. Revisa tu internet.", permiso:"No tienes permiso para hacer esto.", clave:"Clave incorrecta.",
   ubicacion:"Esa ubicación queda fuera del fraccionamiento.", demasiados:"Ya enviaste muchos reportes hoy. Intenta mañana.", foto:"No se pudo guardar la foto.", lleno:"La hoja de datos está llena; avisa al comité.", a_ti_mismo:"No puedes quitarte tu propio rol de comité ni bloquearte."};
@@ -377,7 +392,7 @@ function parseLL(str,tol){ tol=tol||400;
 // ---------- Estado ----------
 const S = { token:"", user:null };
 { const ss=store.get("sesionTH"); if(ss&&ss.token){ S.token=ss.token; S.user=ss.user; } }
-let items=[], reps=[], lugares=[], pedidos=[], loaded=false;
+let items=[], reps=[], lugares=[], pedidos=[], promos=[], loaded=false;
 let track=null;   // cliente siguiendo un pedido: {pid, loc, timer}
 let share=null;   // negocio compartiendo ubicación: {pid, watch, last}
 let cat="";                  // "" inicio · "todo" mapa general · clave de sección
@@ -454,7 +469,7 @@ function visiblePins(){
     return out;
   }
   if(cat==="lugares"){
-    lugares.filter(l=>l.clase==="negocio").forEach(l=>{ const g=GIROS[l.giro]||GIROS.otro; out.push({k:"l:"+l.id,l,icon:g[1],col:l.estado==="aprobado"?BIZ_COL:"var(--muted)",pend:l.estado!=="aprobado",lab:`${l.nombre}, ${g[0]}`}); });
+    lugares.filter(l=>l.clase==="negocio").forEach(l=>{ const g=GIROS[l.giro]||GIROS.otro; out.push({k:"l:"+l.id,l,icon:g[1],col:l.estado==="aprobado"?BIZ_COL:"var(--muted)",pend:l.estado!=="aprobado",dot:promos.some(p=>p.vigente&&p.lugarId===l.id),lab:`${l.nombre}, ${g[0]}`}); });
     return out;
   }
   const c=CATS[cat]; if(!c) return out; const only=!!filtro[cat];
@@ -693,10 +708,11 @@ function renderInicio(){
     ${nNuevos?`<button type="button" class="alertcard" id="hPend"><b>${nNuevos}</b><span>${nNuevos===1?"reporte nuevo por revisar":"reportes nuevos por revisar"}</span></button>`:""}
     ${nPedNeg?`<button type="button" class="alertcard" id="hPedNeg"><b>${nPedNeg}</b><span>${nPedNeg===1?"pedido nuevo en tu negocio":"pedidos nuevos en tu negocio"}</span></button>`:""}
     ${nBizPend?`<button type="button" class="alertcard" id="hBizPend"><b>${nBizPend}</b><span>${nBizPend===1?"negocio por aprobar":"negocios por aprobar"}</span></button>`:""}
+    ${vitrinaH()}
     <div class="tiles">
       ${tile("reportes","reportar","var(--accent)","Reportar un problema","Luminarias, drenaje, baches, fugas, apagones, basura y poda")}
       ${tile("buscar","buscar","#2f6fd6","Seguimiento de reportes","Busca un reporte y mira cómo va",misAb?String(misAb):"")}
-      ${tile("lugares","lugares",BIZ_COL,"Negocios y lugares","Directorio, menús, pedidos y lugares clave")}
+      ${tile("lugares","lugares",BIZ_COL,"Negocios y lugares",promos.some(p=>p.vigente)?`${promos.filter(p=>p.vigente).length} promociones activas · directorio y pedidos`:"Directorio, menús, promociones y pedidos")}
       ${tile("numeros","telefono","#b3261e","Números oficiales","Teléfonos de dependencias para reportar")}
       ${tile("comite","comite","var(--gold)","Conoce a tu comité","Quiénes integran el comité vecinal")}
       ${tile("reglamentos","reglamento","#3f6779","Reglamentos","Fraccionamiento, grupo de WhatsApp y de seguridad")}
@@ -706,7 +722,7 @@ function renderInicio(){
     ${isComite()&&!catItems("luminarias").length?`<button type="button" class="alertcard" id="hImport"><span>Traer los postes de la página anterior (postes-trinidad)</span></button>`:""}
     <div class="foot">Comité Vecinal · ${esc(getComite().gestion||"")} · Oaxaca de Juárez</div></div>`;
   const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
-  on("hPend",()=>openPendientes("")); on("hPedNeg",()=>openPedidosNegocio()); on("hImport",()=>importar());
+  on("hPend",()=>openPendientes("")); on("hPedNeg",()=>openPedidosNegocio()); on("hImport",()=>importar()); wireVitrina($("home"));
   on("hBizPend",()=>{ setCat("lugares"); openDirectorio("pend"); }); on("hClave",()=>{ setCat("lugares"); chooseClave(); });
 }
 function renderReportes(){
@@ -1295,9 +1311,11 @@ function openLugar(l){
       <a class="btn${wa||l.telefono?"":" wide"}" href="${l.maps&&/^https?:\/\//.test(l.maps)?esc(l.maps):gmaps(l.lat,l.lon)}" target="_blank" rel="noopener">Ver en Google Maps</a>
       ${!puedePedir&&menu.length?`<button type="button" class="btn" id="lMenu">Ver menú</button>`:""}
     </div>`+
-    (l.menuFoto?`<div class="seglbl">Foto del menú</div><div class="foto"><img src="${fotoURL(l.menuFoto)}" alt="Menú de ${esc(l.nombre)}" loading="lazy" referrerpolicy="no-referrer"></div>`:"")+
+    promosH(l)+
+    (l.menuFoto?(l.menuTipo==="pdf"?`<div class="seglbl">Menú</div><a class="btn" style="width:100%;justify-content:center;margin-bottom:14px" href="${driveView(l.menuFoto)}" target="_blank" rel="noopener">${svgI("archivo",'width="17" height="17"')}Ver menú completo (PDF)</a>`:`<div class="seglbl">Menú</div><div class="foto"><img src="${fotoURL(l.menuFoto)}" alt="Menú de ${esc(l.nombre)}" loading="lazy" referrerpolicy="no-referrer"></div>`):"")+
     (puede&&!clave?`<div class="seglbl">${l.mio?"Tu negocio":"Administrar negocio"}</div><div class="biz-actions">
-      <button type="button" class="btn" id="lEdMenu">Editar menú</button><label class="btn fotobtn" for="fotoM" style="justify-content:center">${svgCam}${l.menuFoto?"Cambiar foto del menú":"Foto del menú"}</label><input type="file" id="fotoM" accept="image/*" hidden>
+      <button type="button" class="btn" id="lEdMenu">Editar menú</button><label class="btn fotobtn" for="fotoM" style="justify-content:center">${svgI("archivo",'width="17" height="17"')}${l.menuFoto?"Cambiar menú (foto o PDF)":"Subir menú (foto o PDF)"}</label><input type="file" id="fotoM" accept="image/*,application/pdf" hidden>
+      ${l.estado==="aprobado"?`<button type="button" class="btn primary wide" id="lPromo">+ Publicar promoción</button>`:`<div class="hint wide" style="margin:0">Cuando el comité apruebe tu negocio podrás publicar promociones en la vitrina del Inicio.</div>`}
       ${l.mio?`<button type="button" class="btn wide" id="lPedN">Pedidos recibidos${recibidos.length?` · ${recibidos.length} en curso`:""}</button>`:""}</div>`:"")+
     (isComite()&&!clave?`<div class="seglbl">Aprobación del comité</div><div class="seg seg3" role="group">${[["aprobado","Aprobado"],["pendiente","Por aprobar"],["rechazado","No aprobado"]].map(([k,t])=>`<button type="button" data-ls="${k}" aria-pressed="${l.estado===k}" style="${l.estado===k?`background:${k==="aprobado"?"var(--done)":k==="pendiente"?"var(--gold)":"var(--rep)"};color:#fff;border-color:transparent`:""}">${t}</button>`).join("")}</div>${l.dueno?`<div class="meta" style="margin:-6px 0 12px">Registró: @${esc(l.dueno)}</div>`:""}`:"")+
     (puede?`<div class="actions"><button type="button" class="btn" id="lEdit">Editar datos y ubicación</button><button type="button" class="btn danger" id="lDel">Eliminar</button></div><div id="lDelBox"></div>`:"")+
@@ -1306,7 +1324,12 @@ function openLugar(l){
   on("lPedir",()=>pedidoModal(l)); on("lMenu",()=>pedidoModal(l,true)); on("lEdMenu",()=>editMenu(l)); on("lEdit",()=>openLugarForm(l,false)); on("lPedN",()=>openPedidosNegocio(l.id));
   wireRepLi(sh); sh.querySelectorAll(".li[data-pid]").forEach(b=>b.onclick=()=>{ const p=pedidos.find(x=>x.pid===b.dataset.pid); if(p) openPedido(p); });
   wireFotoUpload("fotoL",async b64=>{ const r=await api("lugarFoto",{id:l.id,data:b64,campo:"foto"}); l.foto=r.foto; openLugar(l); });
-  wireFotoUpload("fotoM",async b64=>{ const r=await api("lugarFoto",{id:l.id,data:b64,campo:"menuFoto"}); l.menuFoto=r.foto; openLugar(l); });
+  const fm=$("fotoM"); if(fm) fm.onchange=async()=>{ const f=fm.files&&fm.files[0]; if(!f) return; const pdf=f.type==="application/pdf";
+    if(pdf&&f.size>9e6){ toast("El PDF pesa más de 9 MB. Comprímelo o sube fotos."); return; } toast("Subiendo menú…");
+    try{ const b64=pdf?await fileB64(f):await resizeImage(f,1800); const r=await api("lugarFoto",{id:l.id,data:b64,campo:"menuFoto",mime:pdf?"application/pdf":"image/jpeg"}); l.menuFoto=r.foto; l.menuTipo=pdf?"pdf":"img"; toast("Menú guardado"); openLugar(l); }catch(e){ toast(errTxt(e)); } };
+  on("lPromo",()=>promoModal(l));
+  sh.querySelectorAll("[data-pq]").forEach(b=>b.onclick=async()=>{ const id=b.dataset.pq; if(await guard(()=>api("promoQuitar",{id}),"Promoción quitada")){ promos=promos.filter(p=>p.id!==id); renderCats(); openLugar(l); } });
+  sh.querySelectorAll("[data-pe2]").forEach(b=>b.onclick=()=>promoModal(l,promos.find(p=>p.id===b.dataset.pe2)));
   sh.querySelectorAll("[data-ls]").forEach(b=>b.onclick=async()=>{ const e=b.dataset.ls; if(e===l.estado) return; if(await guard(()=>api("lugarEstado",{id:l.id,estado:e}),e==="aprobado"?"Negocio aprobado":e==="rechazado"?"Negocio no aprobado":"Negocio en revisión")){ l.estado=e; summary(); renderCats(); openLugar(l); } });
   on("lDel",()=>{ $("lDelBox").innerHTML=`<div class="confirm">¿Eliminar «${esc(l.nombre)}»? <button class="btn danger" type="button" id="lYes">Sí, eliminar</button><button class="btn" type="button" id="lNo">No</button></div>`;
     $("lNo").onclick=()=>{ $("lDelBox").innerHTML=""; }; $("lYes").onclick=async()=>{ if(await guard(()=>api("lugarBorrar",{id:l.id}),"Eliminado")){ lugares=lugares.filter(x=>x.id!==l.id); closeSheet(); summary(); } }; });
@@ -1399,17 +1422,47 @@ function openPedidosNegocio(lid){ let f="abiertos";
   render(); }
 function openDirectorio(f0){ let f=f0||"todos", q="";
   const render=()=>{
-    const match=l=>f==="todos"?(l.clase==="negocio"?l.estado==="aprobado"||l.mio:true):f==="comida"?l.clase==="negocio"&&l.estado==="aprobado"&&esComida(l):f==="domicilio"?l.clase==="negocio"&&l.estado==="aprobado"&&l.domicilio:f==="clave"?l.clase==="clave":f==="pend"?l.estado==="pendiente":f==="mios"?l.mio:true;
+    const conPromo=l=>promos.some(p=>p.vigente&&p.lugarId===l.id);
+    const match=l=>f==="promo"?conPromo(l)&&l.estado==="aprobado":f==="todos"?(l.clase==="negocio"?l.estado==="aprobado"||l.mio:true):f==="comida"?l.clase==="negocio"&&l.estado==="aprobado"&&esComida(l):f==="domicilio"?l.clase==="negocio"&&l.estado==="aprobado"&&l.domicilio:f==="clave"?l.clase==="clave":f==="pend"?l.estado==="pendiente":f==="mios"?l.mio:true;
     const rows=lugares.filter(match).filter(l=>!q||norm(l.nombre+" "+tipoL(l)[0]+" "+(l.descripcion||"")).includes(norm(q))).sort((a,b)=>(a.clase==="clave")-(b.clase==="clave")||String(a.nombre).localeCompare(String(b.nombre)));
-    const chips=[["todos","Todos"],["comida","Comida y café"],["domicilio","A domicilio"],["clave","Lugares clave"],...(lugares.some(l=>l.mio)?[["mios","Míos"]]:[]),...(isComite()?[["pend","Por aprobar"]]:[])];
+    const chips=[["todos","Todos"],["promo","Con promoción"],["comida","Comida y café"],["domicilio","A domicilio"],["clave","Lugares clave"],...(lugares.some(l=>l.mio)?[["mios","Míos"]]:[]),...(isComite()?[["pend","Por aprobar"]]:[])];
     const sh=openSheet(`<div class="shead"><div class="t"><h2>Negocios y lugares</h2><div style="color:var(--muted);font-size:13px">${rows.length} ${rows.length===1?"resultado":"resultados"}</div></div>${xBtn}</div>
       <div class="srow" style="margin-bottom:10px"><input id="dq" type="search" placeholder="Buscar: tacos, café, farmacia…" value="${esc(q)}" autocomplete="off"></div>
       <div class="filters">${chips.map(([k,t])=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${f===k}">${esc(t)}</button>`).join("")}</div>
-      <div class="list">${rows.map(l=>{ const t=tipoL(l); return `<button class="li" type="button" data-lid="${esc(l.id)}"><span class="ic" style="background:${colL(l)}">${svgI(t[1])}</span><span class="b"><span class="p">${esc(l.nombre)}</span><span class="s" style="display:block">${esc([t[0],l.clase==="negocio"&&l.domicilio?"A domicilio":"",l.horario||l.direccion||""].filter(Boolean).join(" · "))}</span></span>${l.estado==="pendiente"?'<span class="pill" style="background:var(--gold)">Por aprobar</span>':l.estado==="rechazado"?'<span class="pill" style="background:var(--rep)">No aprobado</span>':""}</button>`; }).join("")||`<div class="empty">${f==="todos"&&!q?"Aún no hay negocios registrados. ¡Registra el tuyo!":"No hay nada en este filtro."}</div>`}</div>`);
+      <div class="list">${rows.map(l=>{ const t=tipoL(l); return `<button class="li" type="button" data-lid="${esc(l.id)}"><span class="ic" style="background:${colL(l)}">${svgI(t[1])}</span><span class="b"><span class="p">${esc(l.nombre)}</span><span class="s" style="display:block">${esc([t[0],l.clase==="negocio"&&l.domicilio?"A domicilio":"",l.horario||l.direccion||""].filter(Boolean).join(" · "))}</span></span>${l.estado==="pendiente"?'<span class="pill" style="background:var(--gold)">Por aprobar</span>':l.estado==="rechazado"?'<span class="pill" style="background:var(--rep)">No aprobado</span>':""}</button>`; }).join("")||`<div class="empty">${f==="todos"&&!q?"Aún no hay negocios registrados. ¡Registra el tuyo gratis!":f==="promo"?"Por ahora no hay promociones activas.":"No hay nada en este filtro."}</div>`}</div>`);
     sh.querySelectorAll(".chip[data-f]").forEach(b=>b.onclick=()=>{ f=b.dataset.f; render(); });
     const dq=$("dq"); dq.oninput=()=>{ q=dq.value.trim(); render(); const n=$("dq"); n.focus(); try{ n.setSelectionRange(n.value.length,n.value.length); }catch(e){} };
     sh.querySelectorAll(".li[data-lid]").forEach(b=>b.onclick=()=>{ const l=lugares.find(x=>x.id===b.dataset.lid); if(l){ center(l.lat,l.lon,3); openLugar(l); } }); };
   render(); }
+// Promociones de los negocios
+const fechaCorta = iso=>{ try{ return new Date(iso).toLocaleDateString("es-MX",{day:"numeric",month:"short"}); }catch(e){ return ""; } };
+const promosDe = id=>promos.filter(p=>p.lugarId===id).sort((a,b)=>String(b.desde).localeCompare(String(a.desde)));
+function promoCard(p,admin){ const l=lugares.find(x=>x.id===p.lugarId); const vence=Math.ceil((new Date(p.hasta)-Date.now())/864e5);
+  return `<div class="promo" ${admin?"":`data-plid="${esc(p.lugarId)}" role="button" tabindex="0"`}>${p.foto?`<img src="${fotoURL(p.foto)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:`<div class="pimg" style="background:${BIZ_COL}">${svgI(l?tipoL(l)[1]:"estrella")}</div>`}
+    <div class="pb"><span class="pt">${esc(p.titulo)}</span><span class="pn">${esc(p.lugarNombre)}</span>${p.descripcion&&admin?`<span class="pd">${esc(p.descripcion)}</span>`:""}
+    <span class="pv">${!p.vigente?"Vencida":vence<=1?"Último día":`Hasta el ${esc(fechaCorta(p.hasta))}`}</span>
+    ${admin?`<span class="pa">${l&&l.mio?`<button type="button" class="btn" data-pe2="${esc(p.id)}">Editar</button>`:""}<button type="button" class="btn danger" data-pq="${esc(p.id)}">Quitar</button></span>`:""}</div></div>`; }
+function promosH(l){ if(l.clase!=="negocio") return ""; const ps=promosDe(l.id).filter(p=>p.vigente||l.mio); const admin=l.mio||isComite(); if(!ps.length) return "";
+  return `<div class="seglbl">Promociones</div><div class="promos-list">${ps.map(p=>promoCard(p,admin)).join("")}</div>`; }
+function vitrinaH(){ const ps=promos.filter(p=>p.vigente).sort((a,b)=>String(b.desde).localeCompare(String(a.desde))).slice(0,12);
+  if(!ps.length) return lugares.some(l=>l.mio&&l.clase==="negocio")?"":`<button type="button" class="alertcard promo-cta" id="hBizCta"><span>¿Tienes un negocio en el fraccionamiento? <b style="font:700 14.5px var(--body);color:var(--ink)">Regístralo gratis</b>: aparece en el directorio, recibe pedidos por WhatsApp y publica tus promociones aquí.</span></button>`;
+  return `<div class="h3">Promociones del fraccionamiento</div><div class="vitrina">${ps.map(p=>promoCard(p,false)).join("")}</div>`; }
+function wireVitrina(root){ root.querySelectorAll(".promo[data-plid]").forEach(b=>{ const go=()=>{ const l=lugares.find(x=>x.id===b.dataset.plid); if(!l) return; setCat("lugares",true); requestAnimationFrame(()=>{ center(l.lat,l.lon,3); openLugar(l); }); };
+  b.onclick=go; b.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } }; });
+  const c=$("hBizCta"); if(c) c.onclick=()=>{ setCat("lugares"); setTimeout(()=>setPlacing("negocio"),60); }; }
+function promoModal(l,p){ p=p||{}; const d=new Date(Date.now()+7*864e5); const def=p.hasta?p.hasta.slice(0,10):d.toISOString().slice(0,10); const max=new Date(Date.now()+60*864e5).toISOString().slice(0,10); const hoy=new Date().toISOString().slice(0,10);
+  const m=modal(`<form style="display:grid;gap:12px" autocomplete="off"><h3>${p.id?"Editar promoción":"Nueva promoción"}</h3><p>Sale en la vitrina del Inicio de todos los vecinos y en la ficha de <b>${esc(l.nombre)}</b> hasta la fecha que elijas (máximo 60 días). Puedes tener hasta 3 activas.</p>
+    <label>Título<input id="prT" maxlength="80" required value="${esc(p.titulo)}" placeholder="Ej. 2×1 en café de olla los martes"></label>
+    <label>Detalles (opcional)<textarea id="prD" maxlength="400" placeholder="Condiciones, horario, cómo pedirla…">${esc(p.descripcion)}</textarea></label>
+    <label>Vigente hasta<input id="prH" type="date" required min="${hoy}" max="${max}" value="${def}"></label>
+    <label class="btn fotobtn" for="prF">${svgCam}<span id="prFt">${p.foto?"Cambiar imagen":"Agregar imagen (recomendado)"}</span></label><input type="file" id="prF" accept="image/*" hidden><img id="prP" class="fotoprev" alt="" ${p.foto?`src="${fotoURL(p.foto)}" referrerpolicy="no-referrer"`:"hidden"}>
+    <div class="hint err" id="prE" hidden></div><div class="row"><button type="button" class="btn" id="prN">Cancelar</button><button type="submit" class="btn primary" style="flex:0 0 auto" id="prO">${p.id?"Guardar":"Publicar"}</button></div></form>`,"wide");
+  let foto=null; m.querySelector("#prF").onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; try{ foto=await resizeImage(f,1200); const im=m.querySelector("#prP"); im.src="data:image/jpeg;base64,"+foto; im.hidden=false; m.querySelector("#prFt").textContent="Cambiar imagen"; }catch(er){ toast("No se pudo leer la imagen."); } };
+  m.querySelector("#prN").onclick=()=>m.remove();
+  m.querySelector("form").onsubmit=async ev=>{ ev.preventDefault(); const b=m.querySelector("#prO"); b.disabled=true; const er=m.querySelector("#prE"); er.hidden=true;
+    try{ const r=await api("promoGuardar",{lugarId:l.id,id:p.id||"",titulo:m.querySelector("#prT").value.trim(),descripcion:m.querySelector("#prD").value.trim(),hasta:m.querySelector("#prH").value,foto:foto||""});
+      promos=[...promos.filter(x=>x.id!==r.promo.id),r.promo]; m.remove(); toast(p.id?"Promoción guardada":"¡Promoción publicada en la vitrina!"); renderCats(); openLugar(l); }
+    catch(e){ er.textContent=errTxt(e); er.hidden=false; b.disabled=false; } }; }
 // Negocio comparte su ubicación mientras entrega
 function startShare(p){
   if(!navigator.geolocation){ toast("Este celular no puede compartir la ubicación."); return; }
@@ -1603,7 +1656,7 @@ $("btnMe").onclick=()=>{ if(watchId!==null){ navigator.geolocation.clearWatch(wa
 let refreshing=null;
 async function refresh(){
   if(!S.token) return; if(refreshing) return refreshing;
-  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat)); lugares=(j.lugares||[]).filter(l=>!isNaN(l.lat)); pedidos=j.pedidos||[]; contenido=j.contenido||{};
+  refreshing=(async()=>{ try{ const j=await api("datos"); items=(j.items||[]).filter(p=>typeof p.lat==="number"&&!isNaN(p.lat)); reps=(j.reportes||[]).filter(r=>!isNaN(r.lat)); lugares=(j.lugares||[]).filter(l=>!isNaN(l.lat)); pedidos=j.pedidos||[]; promos=j.promos||[]; contenido=j.contenido||{};
       if(share){ const p=pedidos.find(x=>x.pid===share.pid); if(!p||p.estado!=="camino") stopShare(); }
       if(j.user&&(j.user.rol!==S.user.rol||j.user.estado!==S.user.estado)){ setSession(S.token,j.user); if(cat) fabs(); }
       loaded=true; $("dbBanner").hidden=true;
